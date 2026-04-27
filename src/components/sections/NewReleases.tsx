@@ -1,21 +1,29 @@
 import Link from "next/link";
 import { Calendar, ArrowRight, ArrowUpRight } from "lucide-react";
 import { SectionHeader } from "@/components/layout/SectionHeader";
-import { SneakerPlaceholder } from "@/components/ui/SneakerPlaceholder";
-import { listFeatured, type ShopProduct } from "@/lib/shop-api";
-import { formatPrice } from "@/lib/utils";
 
-export async function NewReleases() {
-  let products: ShopProduct[] = [];
-  try {
-    const res = await listFeatured();
-    products = res.data.slice(0, 2);
-  } catch (err) {
-    console.error("NewReleases fetch failed", err);
-  }
+const RELEASES = [
+  {
+    brand: "AIR JORDAN",
+    name: "Air Jordan 3 Retro",
+    subtitle: "Edición limitada · Stock mínimo",
+    price: 599,
+    image: "/images/sections/air-jordan-3.png",
+    href: "/tienda?q=jordan",
+    theme: "dark" as const,
+  },
+  {
+    brand: "YEEZY",
+    name: "Yeezy Boost 350 V2",
+    subtitle: "Comodidad y diseño premium",
+    price: 899,
+    image: "/images/sections/yeezy-350.png",
+    href: "/tienda?q=yeezy",
+    theme: "light" as const,
+  },
+];
 
-  const [first, second] = products;
-
+export function NewReleases() {
   return (
     <section className="container-page py-14">
       <SectionHeader
@@ -37,91 +45,71 @@ export async function NewReleases() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <article className="group relative overflow-hidden rounded-[28px] bg-[var(--avax-black)] min-h-[420px] flex flex-col justify-end p-9 cursor-pointer">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-20 -left-20 w-[320px] h-[320px] rounded-full bg-[var(--primary)] opacity-30 blur-3xl" />
-          </div>
-
-          <div className="absolute inset-0 transition-transform duration-300 group-hover:scale-105">
-            {first?.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={first.image}
-                alt={first.name}
-                className="absolute right-0 top-0 h-full w-2/3 object-cover opacity-90"
-                loading="lazy"
-              />
-            ) : (
-              <SneakerPlaceholder
-                size={240}
-                className="absolute right-8 top-12 text-white opacity-40"
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--avax-black)] via-[var(--avax-black)]/70 to-transparent" />
-          </div>
-
-          <div className="relative flex flex-col gap-2.5 z-10">
-            <span className="inline-flex items-center px-3 py-1 rounded-full bg-white text-[10px] font-extrabold tracking-[0.15em] text-[var(--avax-black)] w-fit">
-              {first?.brand || "AIR JORDAN"}
-            </span>
-            <h3 className="text-3xl md:text-4xl font-black text-white leading-none line-clamp-2">
-              {first?.name || "Air Jordan 3 Retro"}
-            </h3>
-            <p className="text-sm text-white/70">
-              Edición limitada · Stock mínimo
-            </p>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[var(--avax-black)] text-sm font-extrabold w-fit mt-2 hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
+        {RELEASES.map((release) => {
+          const isDark = release.theme === "dark";
+          return (
+            <Link
+              key={release.name}
+              href={release.href}
+              className="group relative overflow-hidden rounded-[28px] bg-[var(--avax-black)] min-h-[420px] flex cursor-pointer"
             >
-              Comprar {formatPrice(first?.price ?? 599)}
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </article>
-
-        <article className="group relative overflow-hidden rounded-[28px] bg-[var(--surface-2)] min-h-[420px] flex flex-col justify-end p-9 cursor-pointer">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-24 right-12 w-[300px] h-[300px] rounded-full bg-[var(--primary)] opacity-20 blur-3xl" />
-          </div>
-
-          <div className="absolute inset-0 transition-transform duration-300 group-hover:scale-105">
-            {second?.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={second.image}
-                alt={second.name}
-                className="absolute right-0 top-0 h-full w-2/3 object-cover"
-                loading="lazy"
+                src={release.image}
+                alt={release.name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-            ) : (
-              <SneakerPlaceholder
-                size={240}
-                className="absolute right-8 top-12 text-[var(--avax-black)] opacity-30"
+              {/* Overlay para legibilidad del texto */}
+              <div
+                className={
+                  isDark
+                    ? "absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"
+                    : "absolute inset-0 bg-gradient-to-t from-white/95 via-white/30 to-transparent"
+                }
               />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--surface-2)] via-[var(--surface-2)]/70 to-transparent" />
-          </div>
 
-          <div className="relative flex flex-col gap-2.5 z-10">
-            <span className="inline-flex items-center px-3 py-1 rounded-full bg-[var(--avax-black)] text-[10px] font-extrabold tracking-[0.15em] text-white w-fit">
-              {second?.brand || "YEEZY"}
-            </span>
-            <h3 className="text-3xl md:text-4xl font-black text-[var(--avax-black)] leading-none line-clamp-2">
-              {second?.name || "Yeezy Boost 350 V2"}
-            </h3>
-            <p className="text-sm text-[var(--foreground-muted)]">
-              Comodidad y diseño premium
-            </p>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--avax-black)] text-white text-sm font-extrabold w-fit mt-2 hover:bg-black transition-colors cursor-pointer"
-            >
-              Comprar {formatPrice(second?.price ?? 899)}
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </article>
+              <div className="relative z-10 flex flex-col justify-end gap-2.5 p-9 w-full">
+                <span
+                  className={
+                    isDark
+                      ? "inline-flex items-center px-3 py-1 rounded-full bg-white text-[10px] font-extrabold tracking-[0.15em] text-[var(--avax-black)] w-fit"
+                      : "inline-flex items-center px-3 py-1 rounded-full bg-[var(--avax-black)] text-[10px] font-extrabold tracking-[0.15em] text-white w-fit"
+                  }
+                >
+                  {release.brand}
+                </span>
+                <h3
+                  className={
+                    isDark
+                      ? "text-3xl md:text-4xl font-black text-white leading-none line-clamp-2"
+                      : "text-3xl md:text-4xl font-black text-[var(--avax-black)] leading-none line-clamp-2"
+                  }
+                >
+                  {release.name}
+                </h3>
+                <p
+                  className={
+                    isDark
+                      ? "text-sm text-white/80"
+                      : "text-sm text-[var(--foreground-muted)]"
+                  }
+                >
+                  {release.subtitle}
+                </p>
+                <span
+                  className={
+                    isDark
+                      ? "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[var(--avax-black)] text-sm font-extrabold w-fit mt-2 group-hover:bg-[var(--surface-2)] transition-colors"
+                      : "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--avax-black)] text-white text-sm font-extrabold w-fit mt-2 group-hover:bg-black transition-colors"
+                  }
+                >
+                  Comprar S/ {release.price}
+                  <ArrowRight size={14} />
+                </span>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

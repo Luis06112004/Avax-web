@@ -1,21 +1,8 @@
 import Link from "next/link";
 import { Timer, ArrowRight, TimerReset } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { SneakerPlaceholder } from "@/components/ui/SneakerPlaceholder";
-import { listOnSale, listFeatured } from "@/lib/shop-api";
 
-export async function PromoBanner() {
-  let images: string[] = [];
-  let totalAvailable = 0;
-  try {
-    const [sale, feat] = await Promise.all([listOnSale(), listFeatured()]);
-    const all = [...sale.data, ...feat.data];
-    images = Array.from(new Set(all.map((p) => p.image).filter(Boolean))).slice(0, 9);
-    totalAvailable = sale.data.length;
-  } catch (err) {
-    console.error("PromoBanner fetch failed", err);
-  }
-
+export function PromoBanner() {
   return (
     <section className="container-page py-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -41,7 +28,11 @@ export async function PromoBanner() {
             </p>
             <div className="flex items-center gap-3 mt-4 flex-wrap">
               <Link href="/ofertas">
-                <Button variant="white" icon={<ArrowRight size={16} />} iconPosition="right">
+                <Button
+                  variant="white"
+                  icon={<ArrowRight size={16} />}
+                  iconPosition="right"
+                >
                   Ver ofertas
                 </Button>
               </Link>
@@ -53,41 +44,26 @@ export async function PromoBanner() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-[32px] min-h-[380px] bg-[var(--surface-2)]">
-          <div className="absolute inset-0 grid grid-cols-3 gap-2 p-3">
-            {Array.from({ length: 9 }).map((_, i) => {
-              const img = images[i % Math.max(1, images.length)];
-              return (
-                <div
-                  key={i}
-                  className="relative rounded-xl bg-white overflow-hidden"
-                >
-                  {img ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={img}
-                      alt=""
-                      className="absolute inset-0 w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <SneakerPlaceholder
-                        size={48}
-                        className="text-[var(--avax-blue-medium)]"
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="px-5 py-3 rounded-full bg-white shadow-xl text-sm font-extrabold text-[var(--avax-black)]">
-              + {totalAvailable || 200} modelos disponibles
+        <Link
+          href="/ofertas"
+          className="relative overflow-hidden rounded-[32px] min-h-[380px] block group cursor-pointer"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/sections/promo-lifestyle.png"
+            alt="Estilo de calle con sneakers premium"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+          <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between gap-3">
+            <span className="px-4 py-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-xl text-sm font-extrabold text-[var(--avax-black)]">
+              Lookbook urbano · 2026
+            </span>
+            <span className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white text-[var(--avax-black)] shadow-md group-hover:bg-[var(--avax-black)] group-hover:text-white transition-colors">
+              <ArrowRight size={16} />
             </span>
           </div>
-        </div>
+        </Link>
       </div>
     </section>
   );
