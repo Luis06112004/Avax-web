@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   ChevronRight,
   ChevronLeft,
@@ -55,11 +56,30 @@ function toProduct(p: ShopProduct): Product {
 }
 
 export default function TiendaPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container-page py-10 text-sm text-[var(--foreground-muted)]">
+          Cargando catálogo…
+        </div>
+      }
+    >
+      <TiendaContent />
+    </Suspense>
+  );
+}
+
+function TiendaContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialQ = searchParams.get("q") ?? "";
+
   const [allProducts, setAllProducts] = useState<ShopProduct[]>([]);
   const [brandsList, setBrandsList] = useState<string[]>([]);
   const [categoriesList, setCategoriesList] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [searchTerm, setSearchTerm] = useState(initialQ);
   const [categories, setCategories] = useState<Set<string>>(new Set());
   const [brands, setBrands] = useState<Set<string>>(new Set());
   const [colors, setColors] = useState<Set<string>>(new Set());
@@ -68,6 +88,13 @@ export default function TiendaPage() {
   const [sort, setSort] = useState<(typeof SORTS)[number]["id"]>(SORTS[0].id);
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // React to ?q changes from header search
+  useEffect(() => {
+    const q = searchParams.get("q") ?? "";
+    setSearchTerm(q);
+    setPage(1);
+  }, [searchParams]);
 
   useEffect(() => {
     let alive = true;
@@ -102,7 +129,13 @@ export default function TiendaPage() {
   };
 
   const filtered = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
     let list = allProducts.filter((p) => {
+      if (term) {
+        const haystack =
+          `${p.name} ${p.brand} ${p.category} ${p.sku}`.toLowerCase();
+        if (!haystack.includes(term)) return false;
+      }
       if (categories.size > 0 && !categories.has(p.category)) return false;
       if (brands.size > 0 && !brands.has(p.brand)) return false;
       if (colors.size > 0) {
@@ -121,7 +154,7 @@ export default function TiendaPage() {
     else if (sort === "nombre") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
 
     return list;
-  }, [allProducts, categories, brands, colors, priceMin, priceMax, sort]);
+  }, [allProducts, searchTerm, categories, brands, colors, priceMin, priceMax, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -157,15 +190,30 @@ export default function TiendaPage() {
       </nav>
 
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-4xl md:text-5xl font-black text-[var(--avax-black)] tracking-tight">
             Catálogo
           </h1>
           <p className="text-sm text-[var(--foreground-muted)] mt-1">
             {loading
               ? "Cargando productos…"
-              : `${filtered.length} producto${filtered.length === 1 ? "" : "s"} encontrado${filtered.length === 1 ? "" : "s"}`}
+              : searchTerm
+                ? `${filtered.length} resultado${filtered.length === 1 ? "" : "s"} para “${searchTerm}”`
+                : `${filtered.length} producto${filtered.length === 1 ? "" : "s"} encontrado${filtered.length === 1 ? "" : "s"}`}
           </p>
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm("");
+                router.replace("/tienda");
+              }}
+              className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-[var(--surface-2)] text-xs font-bold text-[var(--avax-black)] hover:bg-[var(--surface-3)] cursor-pointer"
+            >
+              <X size={12} />
+              Limpiar búsqueda
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-3">

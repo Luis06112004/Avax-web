@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import {
   Sparkles,
@@ -116,9 +117,11 @@ export function HeroCarousel({ slides }: Props) {
             </div>
 
             <div className="flex items-center gap-3 pt-2">
-              <Button variant="dark" size="lg" icon={<ShoppingBag size={18} />}>
-                Comprar ahora
-              </Button>
+              <Link href="/tienda">
+                <Button variant="dark" size="lg" icon={<ShoppingBag size={18} />}>
+                  Comprar ahora
+                </Button>
+              </Link>
               <IconButton
                 icon={<Heart size={20} />}
                 variant="white"
