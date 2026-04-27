@@ -10,7 +10,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { SearchBar } from "@/components/layout/SearchBar";
 
 const NAV_ITEMS = [
-  { label: "Inicio", href: "/" },
+  { label: "Home", href: "/" },
   { label: "Tienda", href: "/tienda" },
   { label: "Marcas", href: "/marcas" },
   { label: "Ofertas", href: "/ofertas" },
