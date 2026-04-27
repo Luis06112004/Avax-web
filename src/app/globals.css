@@ -32,6 +32,16 @@
   --success: #16a34a;
   --warning: #f59e0b;
   --danger: #dc2626;
+
+  /* === ADMIN CMS (DARK) === */
+  --admin-bg: #0a1628;
+  --admin-sidebar: #07111f;
+  --admin-card: #14213a;
+  --admin-card-hover: #1a2945;
+  --admin-border: #1f2e4a;
+  --admin-fg: #e8eef9;
+  --admin-fg-muted: #8593af;
+  --admin-fg-subtle: #5a6886;
 }
 
 @theme inline {
