@@ -2,9 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Search, ShoppingCart, User, Heart, Menu } from "lucide-react";
-import { Input } from "@/components/ui/Input";
+import { Heart, LogOut, Menu, ShoppingCart, User as UserIcon, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { IconButton } from "@/components/ui/IconButton";
+import { useCart } from "@/components/cart/CartProvider";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { SearchBar } from "@/components/layout/SearchBar";
 
 const NAV_ITEMS = [
   { label: "Inicio", href: "/" },
@@ -14,9 +17,33 @@ const NAV_ITEMS = [
 ];
 
 export function Header() {
+  const { totalItems, openDrawer } = useCart();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (!accountRef.current?.contains(e.target as Node)) setAccountOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((p) => p[0]?.toUpperCase())
+        .join("")
+    : "";
+
   return (
     <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-[var(--border)]">
-      <div className="container-page flex items-center gap-6 h-20">
+      <div className="container-page flex items-center gap-4 lg:gap-6 h-20">
         <Link href="/" className="shrink-0 flex items-center">
           <Image
             src="/images/avax-logo.png"
@@ -41,43 +68,117 @@ export function Header() {
         </nav>
 
         <div className="flex-1 max-w-md ml-auto hidden md:block">
-          <Input
-            icon={<Search size={18} />}
-            rounded="pill"
-            placeholder="Buscar productos..."
-            fullWidth
-          />
+          <SearchBar />
         </div>
 
-        <div className="flex items-center gap-2">
-          <IconButton
-            icon={<Search size={18} />}
-            label="Buscar"
-            className="md:hidden"
-          />
-          <IconButton icon={<Heart size={18} />} label="Favoritos" />
-          <IconButton
-            icon={<User size={18} />}
-            label="Mi cuenta"
-            className="hidden sm:inline-flex"
-          />
-          <button
-            type="button"
-            aria-label="Carrito"
-            className="relative inline-flex items-center justify-center w-11 h-11 rounded-full bg-[var(--avax-black)] hover:bg-black text-white transition-colors cursor-pointer"
-          >
-            <ShoppingCart size={18} />
-            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-[10px] font-bold rounded-full bg-[var(--avax-blue-light)] text-white">
-              2
-            </span>
-          </button>
+        <div className="flex items-center gap-2 ml-auto md:ml-0">
           <IconButton
             icon={<Menu size={18} />}
             label="Menú"
+            className="md:hidden"
+            onClick={() => setMobileSearchOpen((s) => !s)}
+          />
+          <IconButton
+            icon={<Heart size={18} />}
+            label="Favoritos"
+            className="hidden sm:inline-flex"
+          />
+
+          {isAuthenticated ? (
+            <div ref={accountRef} className="relative hidden sm:block">
+              <button
+                type="button"
+                onClick={() => setAccountOpen((v) => !v)}
+                aria-label="Mi cuenta"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-[var(--primary-soft)] text-[var(--primary)] text-sm font-extrabold hover:bg-[var(--primary)] hover:text-white transition-colors cursor-pointer"
+              >
+                {initials || <UserIcon size={18} />}
+              </button>
+              {accountOpen && (
+                <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white shadow-2xl border border-[var(--border)] overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-[var(--border)]">
+                    <p className="text-sm font-bold text-[var(--avax-black)] line-clamp-1">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-[var(--foreground-muted)] line-clamp-1">
+                      {user?.email}
+                    </p>
+                  </div>
+                  <Link
+                    href="/mis-pedidos"
+                    onClick={() => setAccountOpen(false)}
+                    className="block px-4 py-2.5 text-sm hover:bg-[var(--surface-2)]"
+                  >
+                    Mis pedidos
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setAccountOpen(false);
+                      await logout();
+                    }}
+                    className="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--danger)] hover:bg-[var(--surface-2)] cursor-pointer"
+                  >
+                    <LogOut size={14} />
+                    Cerrar sesión
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden sm:inline-flex items-center justify-center w-11 h-11 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--foreground)] transition-colors"
+              aria-label="Iniciar sesión"
+            >
+              <UserIcon size={18} />
+            </Link>
+          )}
+
+          <button
+            type="button"
+            aria-label="Carrito"
+            onClick={openDrawer}
+            className="relative inline-flex items-center justify-center w-11 h-11 rounded-full bg-[var(--avax-black)] hover:bg-black text-white transition-colors cursor-pointer"
+          >
+            <ShoppingCart size={18} />
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-[10px] font-bold rounded-full bg-[var(--avax-blue-light)] text-white">
+                {totalItems}
+              </span>
+            )}
+          </button>
+          <IconButton
+            icon={mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            label="Menú"
             className="lg:hidden"
+            onClick={() => setMobileMenuOpen((s) => !s)}
           />
         </div>
       </div>
+
+      {mobileSearchOpen && (
+        <div className="md:hidden border-t border-[var(--border)] bg-white px-4 py-3">
+          <SearchBar autoFocus onSubmitted={() => setMobileSearchOpen(false)} />
+        </div>
+      )}
+
+      {mobileMenuOpen && (
+        <div className="lg:hidden border-t border-[var(--border)] bg-white">
+          <nav className="container-page py-3 flex flex-col gap-1">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-2 py-2.5 text-sm font-semibold text-[var(--avax-black)] hover:bg-[var(--surface-2)] rounded-md"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

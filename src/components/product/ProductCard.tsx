@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { Heart, ShoppingBag, Plus, Star, Flame } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { IconButton } from "@/components/ui/IconButton";
 import { SneakerPlaceholder } from "@/components/ui/SneakerPlaceholder";
+import { useCartOptional } from "@/components/cart/CartProvider";
 import { formatPrice, cn } from "@/lib/utils";
 import type { Product } from "@/types";
 
@@ -38,6 +40,34 @@ export function ProductCard({
   onFavorite,
 }: Props) {
   const isSm = size === "sm";
+  const cart = useCartOptional();
+  const href = `/producto/${product.slug}`;
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onAdd) {
+      onAdd(product);
+      return;
+    }
+    cart?.addItem({
+      productId: product.id,
+      slug: product.slug,
+      name: product.name,
+      brand: product.brand,
+      image: product.image,
+      size: "—",
+      unitPrice: product.price,
+      qty: 1,
+      stock: product.stock ?? 99,
+    });
+  };
+
+  const handleFav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onFavorite?.(product);
+  };
 
   const renderBadge = () => {
     if (product.discountLabel) {
@@ -61,11 +91,11 @@ export function ProductCard({
   };
 
   return (
-    <article className="group flex flex-col bg-white rounded-2xl border border-[var(--border)] overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:border-[var(--primary)] transition-all duration-200">
+    <Link href={href} className="group flex flex-col bg-white rounded-2xl border border-[var(--border)] overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:border-[var(--primary)] transition-all duration-200">
       <div
         className={cn(
           "relative w-full flex items-center justify-center bg-white overflow-hidden",
-          imageHeight[size]
+          imageHeight[size],
         )}
       >
         {product.image ? (
@@ -93,7 +123,7 @@ export function ProductCard({
             variant="white"
             size={isSm ? "xs" : "sm"}
             label={`Agregar ${product.name} a favoritos`}
-            onClick={() => onFavorite?.(product)}
+            onClick={handleFav}
           />
         </div>
       </div>
@@ -117,8 +147,8 @@ export function ProductCard({
 
         <h3
           className={cn(
-            "font-extrabold text-[var(--avax-black)] line-clamp-1",
-            titleClass[size]
+            "font-extrabold text-[var(--avax-black)] line-clamp-1 group-hover:text-[var(--primary)] transition-colors",
+            titleClass[size],
           )}
         >
           {product.name}
@@ -129,7 +159,7 @@ export function ProductCard({
             <span
               className={cn(
                 "font-black text-[var(--avax-black)]",
-                priceClass[size]
+                priceClass[size],
               )}
             >
               {formatPrice(product.price)}
@@ -145,7 +175,7 @@ export function ProductCard({
             <button
               type="button"
               aria-label={`Agregar ${product.name} al carrito`}
-              onClick={() => onAdd?.(product)}
+              onClick={handleAdd}
               className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--avax-black)] text-white hover:bg-black transition-colors cursor-pointer"
             >
               <Plus size={16} />
@@ -153,7 +183,7 @@ export function ProductCard({
           ) : (
             <button
               type="button"
-              onClick={() => onAdd?.(product)}
+              onClick={handleAdd}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--avax-black)] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
             >
               <ShoppingBag size={14} />
@@ -162,6 +192,6 @@ export function ProductCard({
           )}
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
