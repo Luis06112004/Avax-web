@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Sparkles,
   Truck,
@@ -34,6 +35,41 @@ type Props = {
   slides: HeroSlide[];
 };
 
+// Easing curva premium: arranca rápido, frena con elegancia.
+const EASE = [0.65, 0, 0.35, 1] as const;
+
+// Stagger inicial: cada elemento entra 80ms después del anterior.
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: EASE },
+  },
+};
+
+const imageVariants = {
+  hidden: { opacity: 0, scale: 1.06 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.7, ease: EASE },
+  },
+  exit: {
+    opacity: 0,
+    scale: 1.04,
+    transition: { duration: 0.35, ease: EASE },
+  },
+};
+
 export function HeroCarousel({ slides }: Props) {
   const [index, setIndex] = useState(0);
   const slide = slides[index];
@@ -59,16 +95,29 @@ export function HeroCarousel({ slides }: Props) {
       : null;
 
   return (
-    <section className="container-page pt-8 pb-10">
-      <div className="relative overflow-hidden rounded-[32px] border border-[var(--border)] bg-gradient-to-br from-[#F7F8FB] via-[#EAF1FB] to-[#D9E5F8]">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-[420px] h-[420px] rounded-full bg-[var(--avax-blue-light)] opacity-25 blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-[380px] h-[380px] rounded-full bg-[var(--avax-blue-dark)] opacity-15 blur-3xl" />
-        </div>
+    <section
+      className="relative w-full overflow-hidden"
+      style={{ height: "calc(100vh - 80px)", minHeight: "640px" }}
+    >
+      {/* Fondo gradiente fijo (no cambia entre slides) */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#F7F8FB] via-[#EAF1FB] to-[#D9E5F8]" />
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-[520px] h-[520px] rounded-full bg-[var(--avax-blue-light)] opacity-30 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-[460px] h-[460px] rounded-full bg-[var(--avax-blue-dark)] opacity-20 blur-3xl" />
+      </div>
 
-        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 md:p-12 lg:p-16 items-center min-h-[520px]">
-          <div className="flex flex-col gap-6 max-w-xl">
-            <div className="flex flex-wrap gap-2">
+      {/* Contenido — proporciones protegidas con max-width y aspect controlado */}
+      <div className="relative h-full container-page py-6 lg:py-10">
+        <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Lado izquierdo: textos */}
+          <motion.div
+            key={`text-${slide.id}`}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col gap-5 max-w-xl mx-auto lg:mx-0 w-full"
+          >
+            <motion.div variants={itemVariants} className="flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--avax-black)] text-white text-[11px] font-extrabold tracking-[0.15em] uppercase">
                 <Sparkles size={12} />
                 Nueva colección
@@ -77,21 +126,30 @@ export function HeroCarousel({ slides }: Props) {
                 <Truck size={12} className="text-[var(--primary)]" />
                 Envío gratis Lima
               </span>
-            </div>
+            </motion.div>
 
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-[0.95] tracking-tight text-[var(--avax-black)]">
+            <motion.h1
+              variants={itemVariants}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[0.95] tracking-tight text-[var(--avax-black)]"
+            >
               {slide.nameTop} <br />
               <span className="bg-gradient-to-r from-[var(--avax-blue-light)] via-[var(--avax-blue-medium)] to-[var(--avax-blue-dark)] bg-clip-text text-transparent">
                 {slide.nameBottom}
               </span>
-            </h1>
+            </motion.h1>
 
-            <p className="text-base md:text-lg text-[var(--foreground-muted)]">
+            <motion.p
+              variants={itemVariants}
+              className="text-base md:text-lg text-[var(--foreground-muted)] max-w-md"
+            >
               {slide.description}
-            </p>
+            </motion.p>
 
-            <div className="flex items-center flex-wrap gap-3">
-              <span className="text-3xl md:text-4xl font-black text-[var(--avax-black)]">
+            <motion.div
+              variants={itemVariants}
+              className="flex items-center flex-wrap gap-3"
+            >
+              <span className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--avax-black)]">
                 {formatPrice(slide.price)}
               </span>
               {slide.oldPrice && (
@@ -114,9 +172,12 @@ export function HeroCarousel({ slides }: Props) {
                 />
                 {slide.rating.toFixed(1)} · {slide.reviews} reseñas
               </span>
-            </div>
+            </motion.div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <motion.div
+              variants={itemVariants}
+              className="flex items-center gap-3 pt-2"
+            >
               <Link href="/tienda">
                 <Button variant="dark" size="lg" icon={<ShoppingBag size={18} />}>
                   Comprar ahora
@@ -129,29 +190,45 @@ export function HeroCarousel({ slides }: Props) {
                 label="Añadir a favoritos"
                 className="!w-[54px] !h-[54px] !rounded-2xl"
               />
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <div className="relative flex flex-col items-center lg:items-end gap-6">
-            <div className="relative w-full max-w-[480px] aspect-[4/3] rounded-3xl bg-white shadow-xl overflow-hidden">
-              {slide.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={slide.image}
-                  alt={`${slide.nameTop} ${slide.nameBottom}`}
-                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
-                  key={slide.image}
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <SneakerPlaceholder
-                    size={280}
-                    className="text-[var(--avax-blue-medium)] opacity-50"
+          {/* Lado derecho: imagen + thumbs */}
+          <div className="relative flex flex-col items-center lg:items-end gap-4 lg:gap-6 h-full justify-center min-h-0">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, ease: EASE, delay: 0.15 }}
+              className="relative w-full max-w-[560px] aspect-square min-h-0 max-h-[min(70vh,560px)] rounded-[32px] bg-white shadow-2xl overflow-hidden"
+            >
+              <AnimatePresence mode="sync" initial={false}>
+                {slide.image ? (
+                  <motion.img
+                    key={slide.image}
+                    variants={imageVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    src={slide.image}
+                    alt={`${slide.nameTop} ${slide.nameBottom}`}
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
-                </div>
-              )}
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <SneakerPlaceholder
+                      size={320}
+                      className="text-[var(--avax-blue-medium)] opacity-50"
+                    />
+                  </div>
+                )}
+              </AnimatePresence>
 
-              <div className="absolute top-6 left-6 flex items-center gap-3 px-4 py-2.5 bg-white rounded-2xl border border-[var(--border)] shadow-lg">
+              <motion.div
+                initial={{ opacity: 0, x: -20, y: -20 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                transition={{ duration: 0.55, ease: EASE, delay: 0.5 }}
+                className="absolute top-6 left-6 flex items-center gap-3 px-4 py-2.5 bg-white rounded-2xl border border-[var(--border)] shadow-lg"
+              >
                 <ShieldCheck size={20} className="text-[var(--success)]" />
                 <div className="flex flex-col leading-tight">
                   <span className="text-xs font-extrabold text-[var(--avax-black)]">
@@ -161,21 +238,28 @@ export function HeroCarousel({ slides }: Props) {
                     Garantía AVAX
                   </span>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
-            <div className="flex items-center gap-3 w-full max-w-[480px] justify-between">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, ease: EASE, delay: 0.6 }}
+              className="flex items-center gap-3 w-full max-w-[560px] justify-between"
+            >
               <div className="flex items-center gap-3">
                 <ArrowButton direction="prev" onClick={goPrev} />
                 <div className="flex gap-2">
                   {slides.map((s, i) => (
-                    <button
+                    <motion.button
                       key={s.id}
                       type="button"
                       aria-label={`Ver ${s.nameTop} ${s.nameBottom}`}
                       onClick={() => setIndex(i)}
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.95 }}
                       className={cn(
-                        "w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-sm cursor-pointer overflow-hidden transition-all",
+                        "w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-sm cursor-pointer overflow-hidden transition-colors",
                         i === index
                           ? "border-2 border-[var(--primary)] scale-105"
                           : "border border-[var(--border)] hover:border-[var(--primary)]",
@@ -189,17 +273,21 @@ export function HeroCarousel({ slides }: Props) {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <SneakerPlaceholder size={32} className="text-[var(--avax-black)] opacity-70" />
+                        <SneakerPlaceholder
+                          size={32}
+                          className="text-[var(--avax-black)] opacity-70"
+                        />
                       )}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
               <ArrowButton direction="next" variant="dark" onClick={goNext} />
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
+
     </section>
   );
 }
