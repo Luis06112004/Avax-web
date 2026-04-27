@@ -1,5 +1,8 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { CartProvider } from "@/components/cart/CartProvider";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 export default function ShopLayout({
   children,
@@ -7,10 +10,13 @@ export default function ShopLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      <Header />
-      <main className="flex-1">{children}</main>
-      <Footer />
-    </>
+    <AuthProvider>
+      <CartProvider>
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
+        <CartDrawer />
+      </CartProvider>
+    </AuthProvider>
   );
 }
