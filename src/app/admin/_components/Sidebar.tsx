@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Image as ImageIcon,
   Layers,
   Tag,
   ShoppingBag,
@@ -36,10 +35,9 @@ const SECTIONS: NavSection[] = [
   {
     title: "CONTENIDO",
     items: [
-      { label: "Imágenes del Home", href: "/admin/imagenes", icon: ImageIcon },
-      { label: "Banners", href: "/admin/banners", icon: Layers, soon: true },
-      { label: "Productos", href: "/admin/productos", icon: ShoppingBag, soon: true },
+      { label: "Productos", href: "/admin/productos", icon: ShoppingBag },
       { label: "Categorías", href: "/admin/categorias", icon: Tag, soon: true },
+      { label: "Banners", href: "/admin/banners", icon: Layers, soon: true },
       { label: "Clientes", href: "/admin/clientes", icon: Users, soon: true },
     ],
   },
@@ -90,24 +88,6 @@ export function Sidebar() {
                   pathname === item.href || pathname?.startsWith(item.href + "/");
                 const Icon = item.icon;
 
-                if (item.soon) {
-                  return (
-                    <li key={item.href}>
-                      <button
-                        type="button"
-                        disabled
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[var(--admin-fg-subtle)] cursor-not-allowed"
-                      >
-                        <Icon size={16} className="shrink-0" />
-                        <span className="flex-1 text-left">{item.label}</span>
-                        <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-white/5 text-[var(--admin-fg-subtle)]">
-                          PRONTO
-                        </span>
-                      </button>
-                    </li>
-                  );
-                }
-
                 return (
                   <li key={item.href}>
                     <Link
@@ -120,7 +100,19 @@ export function Sidebar() {
                       )}
                     >
                       <Icon size={16} className="shrink-0" />
-                      <span>{item.label}</span>
+                      <span className="flex-1">{item.label}</span>
+                      {item.soon && (
+                        <span
+                          className={cn(
+                            "text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded",
+                            isActive
+                              ? "bg-white/20 text-white"
+                              : "bg-white/5 text-[var(--admin-fg-subtle)]",
+                          )}
+                        >
+                          PRONTO
+                        </span>
+                      )}
                     </Link>
                   </li>
                 );

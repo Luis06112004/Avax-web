@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  Image as ImageIcon,
+  ShoppingBag,
   RefreshCw,
   Layers,
   Activity,
@@ -10,21 +10,21 @@ import { Topbar } from "../../_components/Topbar";
 
 const STATS = [
   {
-    label: "Imágenes activas",
-    value: "28",
-    hint: "Hero · Populares · Promo · Lanzamientos · Destacados · Marcas · IG",
-    icon: ImageIcon,
+    label: "Productos publicados",
+    value: "8",
+    hint: "Activos en el catálogo",
+    icon: ShoppingBag,
   },
   {
-    label: "Secciones editables",
-    value: "8",
-    hint: "Áreas visuales del home",
+    label: "Categorías",
+    value: "7",
+    hint: "Running, Lifestyle, Skate, Basketball, Casual, Ropa, Accesorios",
     icon: Layers,
   },
   {
     label: "Última actualización",
     value: "Hoy",
-    hint: "26 abr 2026",
+    hint: "27 abr 2026",
     icon: RefreshCw,
   },
   {
@@ -71,21 +71,21 @@ export default function DashboardPage() {
 
           <div className="relative max-w-2xl">
             <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.22em] text-white/80 mb-3">
-              <Layers size={12} />
+              <ShoppingBag size={12} />
               ACCIÓN PRINCIPAL
             </span>
             <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3 tracking-tight">
-              Cambia las imágenes del home
+              Gestiona el catálogo de productos
             </h2>
             <p className="text-sm text-white/85 mb-7 max-w-lg leading-relaxed">
-              Actualiza el hero, banner promocional, logos de marcas y feed de
-              Instagram que ven los clientes en la tienda pública.
+              Crea, edita y publica productos del e-commerce. Define precios,
+              stock, tallas, colores e imágenes — todo desde un solo lugar.
             </p>
             <Link
-              href="/admin/imagenes"
+              href="/admin/productos"
               className="inline-flex items-center gap-2 px-5 py-3 bg-white text-[var(--avax-black)] hover:bg-white/90 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-black/10"
             >
-              Ir a imágenes del home
+              Ir a productos
               <ArrowRight size={16} />
             </Link>
           </div>
@@ -101,9 +101,9 @@ export default function DashboardPage() {
           </p>
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[
-              "Gestión de productos y variantes",
-              "Pedidos y estados de envío",
               "Categorías del catálogo",
+              "Banners promocionales",
+              "Pedidos y estados de envío",
               "Clientes registrados",
               "Cupones y promociones",
               "Configuración general",
