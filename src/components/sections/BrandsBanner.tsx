@@ -6,11 +6,19 @@ import type { Brand } from "@/types";
 
 const PILL_COLORS = ["#1E1E1E", "#C8102E", "#1E1E1E", "#0066CC", "#000000"];
 
+// Imagenes IA fijas para el banner "Las mejores del mercado".
+// Se asignan por posicion (top1 -> brand-1.png, top2 -> brand-2.png, etc).
+const HERO_IMAGES = [
+  "/images/sections/brand-1.png",
+  "/images/sections/brand-2.png",
+  "/images/sections/brand-3.png",
+];
+
 function toBrand(b: ShopBrand, idx: number): Brand {
   return {
     id: b.id,
     name: b.nombre,
-    image: b.logo ?? undefined,
+    image: HERO_IMAGES[idx] ?? b.logo ?? undefined,
     modelCount: b.productos_count,
     pillColor: PILL_COLORS[idx % PILL_COLORS.length],
   };

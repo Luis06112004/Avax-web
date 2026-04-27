@@ -26,7 +26,7 @@ export function BrandCard({ brand }: Props) {
           <img
             src={brand.image}
             alt={brand.name}
-            className="absolute inset-0 w-full h-full object-contain p-10"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         ) : (
