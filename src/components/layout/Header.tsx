@@ -11,7 +11,6 @@ const NAV_ITEMS = [
   { label: "Tienda", href: "/tienda" },
   { label: "Marcas", href: "/marcas" },
   { label: "Ofertas", href: "/ofertas" },
-  { label: "Componentes", href: "/componentes" },
 ];
 
 export function Header() {
