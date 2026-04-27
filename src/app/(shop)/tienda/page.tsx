@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronDown,
   SlidersHorizontal,
+  ArrowDownUp,
   X,
 } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -217,30 +218,20 @@ function TiendaContent() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setFiltersOpen(true)}
-            className="md:hidden inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[var(--avax-black)] text-white text-sm font-semibold cursor-pointer"
-          >
-            <SlidersHorizontal size={14} />
-            Filtros
-            {activeFiltersCount > 0 && (
-              <span className="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-[var(--avax-blue-light)] text-[10px] font-bold">
-                {activeFiltersCount}
-              </span>
-            )}
-          </button>
-
-          <label className="relative">
+          <label className="relative w-full md:w-auto">
             <span className="sr-only">Ordenar por</span>
+            <ArrowDownUp
+              size={14}
+              className="md:hidden absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--foreground-muted)]"
+            />
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as typeof sort)}
-              className="appearance-none pl-4 pr-10 py-2.5 rounded-full bg-white border border-[var(--border-strong)] text-sm font-semibold text-[var(--avax-black)] cursor-pointer hover:border-[var(--primary)] transition-colors"
+              className="appearance-none w-full pl-10 md:pl-4 pr-10 py-2.5 rounded-full bg-white border border-[var(--border-strong)] text-sm font-semibold text-[var(--avax-black)] cursor-pointer hover:border-[var(--primary)] transition-colors"
             >
               {SORTS.map((s) => (
                 <option key={s.id} value={s.id}>
-                  Ordenar por: {s.label}
+                  {s.label}
                 </option>
               ))}
             </select>
@@ -326,6 +317,21 @@ function TiendaContent() {
           )}
         </div>
       </div>
+
+      {/* FAB de Filtros - solo mobile */}
+      <button
+        type="button"
+        onClick={() => setFiltersOpen(true)}
+        className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30 inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[var(--avax-black)] text-white text-sm font-bold shadow-2xl hover:bg-black active:scale-95 transition-all cursor-pointer"
+      >
+        <SlidersHorizontal size={16} />
+        Filtros
+        {activeFiltersCount > 0 && (
+          <span className="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-[var(--avax-blue-light)] text-[10px] font-extrabold">
+            {activeFiltersCount}
+          </span>
+        )}
+      </button>
     </div>
   );
 }
@@ -502,7 +508,7 @@ function Pagination({
   onChange: (p: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-2 pb-20 md:pb-0">
       <button
         type="button"
         onClick={() => onChange(Math.max(1, page - 1))}
@@ -512,25 +518,38 @@ function Pagination({
       >
         <ChevronLeft size={16} />
       </button>
-      {Array.from({ length: total }).map((_, i) => {
-        const n = i + 1;
-        const active = n === page;
-        return (
-          <button
-            key={n}
-            type="button"
-            onClick={() => onChange(n)}
-            className={cn(
-              "min-w-10 h-10 px-3 rounded-full text-sm font-bold transition-colors cursor-pointer",
-              active
-                ? "bg-[var(--avax-black)] text-white"
-                : "border border-[var(--border-strong)] hover:border-[var(--primary)]",
-            )}
-          >
-            {n}
-          </button>
-        );
-      })}
+
+      {/* Mobile: contador "X de Y" */}
+      <span className="md:hidden inline-flex items-center justify-center px-5 h-10 rounded-full bg-[var(--surface-2)] text-sm font-bold text-[var(--avax-black)] tabular-nums">
+        {page}{" "}
+        <span className="mx-1.5 text-[var(--foreground-subtle)] font-normal">
+          de
+        </span>{" "}
+        {total}
+      </span>
+
+      {/* Desktop: numeros de pagina */}
+      <div className="hidden md:flex items-center gap-2">
+        {Array.from({ length: total }).map((_, i) => {
+          const n = i + 1;
+          const active = n === page;
+          return (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onChange(n)}
+              className={cn(
+                "min-w-10 h-10 px-3 rounded-full text-sm font-bold transition-colors cursor-pointer",
+                active
+                  ? "bg-[var(--avax-black)] text-white"
+                  : "border border-[var(--border-strong)] hover:border-[var(--primary)]",
+              )}
+            >
+              {n}
+            </button>
+          );
+        })}
+      </div>
       <button
         type="button"
         onClick={() => onChange(Math.min(total, page + 1))}
