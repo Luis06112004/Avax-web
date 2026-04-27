@@ -53,9 +53,9 @@ export function Footer() {
               <Image
                 src="/images/avax-logo.png"
                 alt="AVAX"
-                width={140}
-                height={40}
-                className="h-10 w-auto brightness-0 invert"
+                width={160}
+                height={48}
+                className="h-12 w-auto bg-white rounded-xl p-2"
               />
             </Link>
             <p className="text-sm text-white/60 leading-relaxed max-w-sm">

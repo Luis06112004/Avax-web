@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Heart, LogOut, Menu, ShoppingCart, User as UserIcon, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "@/components/ui/IconButton";
@@ -44,15 +45,27 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-[var(--border)]">
       <div className="container-page flex items-center gap-4 lg:gap-6 h-20">
-        <Link href="/" className="shrink-0 flex items-center">
-          <Image
-            src="/images/avax-logo.png"
-            alt="AVAX"
-            width={120}
-            height={40}
-            priority
-            className="h-9 w-auto"
-          />
+        <Link href="/" className="shrink-0 flex items-center group">
+          <motion.div
+            initial={{ clipPath: "inset(0 100% 0 0)", opacity: 0 }}
+            animate={{ clipPath: "inset(0 0% 0 0)", opacity: 1 }}
+            transition={{
+              clipPath: { duration: 1.1, ease: [0.65, 0, 0.35, 1], delay: 0.15 },
+              opacity: { duration: 0.3, delay: 0.15 },
+            }}
+            whileHover={{ scale: 1.04, transition: { duration: 0.25 } }}
+            whileTap={{ scale: 0.96 }}
+            className="origin-left"
+          >
+            <Image
+              src="/images/avax-logo.png"
+              alt="AVAX"
+              width={200}
+              height={60}
+              priority
+              className="h-12 lg:h-14 w-auto select-none"
+            />
+          </motion.div>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-1">
