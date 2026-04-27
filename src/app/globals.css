@@ -101,14 +101,20 @@ body {
 
 .container-page {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1480px;
   margin-inline: auto;
   padding-inline: 1rem;
 }
 
 @media (min-width: 1024px) {
   .container-page {
-    padding-inline: 2rem;
+    padding-inline: 2.5rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container-page {
+    padding-inline: 3rem;
   }
 }
 
