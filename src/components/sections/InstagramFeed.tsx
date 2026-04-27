@@ -1,5 +1,6 @@
 import { Instagram, Plus } from "lucide-react";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { MobileScroller } from "@/components/layout/MobileScroller";
 
 const POSTS = [
   "/images/sections/ig-1.png",
@@ -37,7 +38,7 @@ export function InstagramFeed() {
         className="mb-8"
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <MobileScroller desktopGrid="lg:grid-cols-5" itemWidth="third">
         {POSTS.map((src, i) => (
           <a
             key={src}
@@ -61,7 +62,7 @@ export function InstagramFeed() {
             </div>
           </a>
         ))}
-      </div>
+      </MobileScroller>
     </section>
   );
 }

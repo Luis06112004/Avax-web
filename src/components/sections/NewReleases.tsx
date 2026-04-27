@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Calendar, ArrowRight, ArrowUpRight } from "lucide-react";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { MobileScroller } from "@/components/layout/MobileScroller";
 
 const RELEASES = [
   {
@@ -44,7 +45,7 @@ export function NewReleases() {
         className="mb-9"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <MobileScroller desktopGrid="lg:grid-cols-2" itemWidth="wide">
         {RELEASES.map((release) => {
           const isDark = release.theme === "dark";
           return (
@@ -110,7 +111,7 @@ export function NewReleases() {
             </Link>
           );
         })}
-      </div>
+      </MobileScroller>
     </section>
   );
 }

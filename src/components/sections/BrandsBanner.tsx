@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Sparkles, ArrowUpRight } from "lucide-react";
 import { BrandCard } from "@/components/product/BrandCard";
+import { MobileScroller } from "@/components/layout/MobileScroller";
 import { listBrands, type ShopBrand } from "@/lib/shop-api";
 import type { Brand } from "@/types";
 
@@ -72,11 +73,11 @@ export async function BrandsBanner() {
               Aún no hay marcas. Sincroniza el catálogo desde el panel admin.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <MobileScroller desktopGrid="lg:grid-cols-3" itemWidth="card">
               {brands.map((brand) => (
                 <BrandCard key={brand.id} brand={brand} />
               ))}
-            </div>
+            </MobileScroller>
           )}
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Award } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { MobileScroller } from "@/components/layout/MobileScroller";
 import {
   listFeatured,
   listProducts,
@@ -97,24 +98,24 @@ export function FeaturedProducts() {
       />
 
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <MobileScroller desktopGrid="lg:grid-cols-4" itemWidth="card">
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
               className="aspect-[3/4] rounded-2xl bg-[var(--surface-2)] animate-pulse"
             />
           ))}
-        </div>
+        </MobileScroller>
       ) : products.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[var(--border)] py-16 text-center text-sm text-[var(--foreground-muted)]">
           No hay productos en esta categoría.
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <MobileScroller desktopGrid="lg:grid-cols-4" itemWidth="card">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} size="sm" />
           ))}
-        </div>
+        </MobileScroller>
       )}
     </section>
   );

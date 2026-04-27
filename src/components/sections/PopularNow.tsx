@@ -1,6 +1,7 @@
 import { Flame } from "lucide-react";
-import { ProductCarousel } from "@/components/product/ProductCarousel";
+import { ProductCard } from "@/components/product/ProductCard";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { MobileScroller } from "@/components/layout/MobileScroller";
 import { listPopular, type ShopProduct } from "@/lib/shop-api";
 import type { Product } from "@/types";
 
@@ -36,7 +37,18 @@ export async function PopularNow() {
         title="Lo más popular esta semana"
         className="mb-9"
       />
-      <ProductCarousel products={products} size="md" perPage={3} />
+
+      {products.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-[var(--border)] py-16 text-center text-sm text-[var(--foreground-muted)]">
+          Aún no hay productos disponibles. Sincroniza el catálogo desde el panel admin.
+        </div>
+      ) : (
+        <MobileScroller desktopGrid="lg:grid-cols-3" itemWidth="card">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} size="md" />
+          ))}
+        </MobileScroller>
+      )}
     </section>
   );
 }

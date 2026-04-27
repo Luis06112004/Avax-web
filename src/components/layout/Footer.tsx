@@ -38,7 +38,11 @@ const COLUMNS = [
 
 const SOCIAL = [
   { icon: Facebook, label: "Facebook", href: "#" },
-  { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/avax_pe/" },
+  {
+    icon: Instagram,
+    label: "Instagram",
+    href: "https://www.instagram.com/avax_pe/",
+  },
   { icon: Twitter, label: "Twitter", href: "#" },
   { icon: Youtube, label: "Youtube", href: "#" },
 ];
@@ -47,8 +51,9 @@ export function Footer() {
   return (
     <footer className="bg-[var(--avax-black)] text-white">
       <div className="container-page py-16">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-          <div className="md:col-span-4 flex flex-col gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 text-center md:text-left">
+          {/* Logo + descripcion + redes */}
+          <div className="md:col-span-4 flex flex-col gap-5 items-center md:items-start">
             <Link href="/" className="inline-flex">
               <Image
                 src="/images/avax-logo.png"
@@ -76,8 +81,12 @@ export function Footer() {
             </div>
           </div>
 
+          {/* Columnas de links */}
           {COLUMNS.map((col) => (
-            <div key={col.title} className="md:col-span-2 flex flex-col gap-4">
+            <div
+              key={col.title}
+              className="md:col-span-2 flex flex-col gap-4 items-center md:items-start"
+            >
               <h4 className="text-xs font-extrabold tracking-[0.2em] text-white">
                 {col.title}
               </h4>
@@ -96,36 +105,49 @@ export function Footer() {
             </div>
           ))}
 
-          <div className="md:col-span-2 flex flex-col gap-4">
+          {/* Newsletter */}
+          <div className="md:col-span-2 flex flex-col gap-4 items-center md:items-start">
             <h4 className="text-xs font-extrabold tracking-[0.2em] text-white">
               NEWSLETTER
             </h4>
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-white/60 max-w-xs">
               Promos exclusivas y drops antes que nadie.
             </p>
-            <Input
-              icon={<Mail size={16} />}
-              type="email"
-              placeholder="tu@email.com"
-              className="!bg-white/5 !border-white/10 !text-white"
-              fullWidth
-            />
-            <Button variant="white" size="sm" fullWidth>
-              Suscribirme
-            </Button>
+            <div className="w-full max-w-xs flex flex-col gap-2">
+              <Input
+                icon={<Mail size={16} />}
+                type="email"
+                placeholder="tu@email.com"
+                className="!bg-white/5 !border-white/10 !text-white"
+                fullWidth
+              />
+              <Button variant="white" size="sm" fullWidth>
+                Suscribirme
+              </Button>
+            </div>
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row gap-3 md:items-center md:justify-between text-xs text-white/50">
+        {/* Bottom bar */}
+        <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row gap-4 md:items-center md:justify-between text-xs text-white/50 text-center md:text-left">
           <span>© 2026 AVAX. Todos los derechos reservados.</span>
-          <div className="flex items-center gap-4">
-            <Link href="/terminos" className="hover:text-white transition-colors">
+          <div className="flex items-center justify-center md:justify-end gap-4">
+            <Link
+              href="/terminos"
+              className="hover:text-white transition-colors"
+            >
               Términos
             </Link>
-            <Link href="/privacidad" className="hover:text-white transition-colors">
+            <Link
+              href="/privacidad"
+              className="hover:text-white transition-colors"
+            >
               Privacidad
             </Link>
-            <Link href="/cookies" className="hover:text-white transition-colors">
+            <Link
+              href="/cookies"
+              className="hover:text-white transition-colors"
+            >
               Cookies
             </Link>
           </div>

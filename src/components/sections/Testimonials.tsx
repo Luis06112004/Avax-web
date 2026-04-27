@@ -2,6 +2,7 @@ import { MessageCircleHeart, Star } from "lucide-react";
 import { testimonials } from "@/data/mock";
 import { TestimonialCard } from "@/components/ui/TestimonialCard";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { MobileScroller } from "@/components/layout/MobileScroller";
 
 export function Testimonials() {
   return (
@@ -35,10 +36,12 @@ export function Testimonials() {
           }
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          {testimonials.map((t) => (
-            <TestimonialCard key={t.id} testimonial={t} />
-          ))}
+        <div className="mt-12">
+          <MobileScroller desktopGrid="lg:grid-cols-3">
+            {testimonials.map((t) => (
+              <TestimonialCard key={t.id} testimonial={t} />
+            ))}
+          </MobileScroller>
         </div>
       </div>
     </section>
