@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { AuthShell } from "../_components/AuthShell";
+import {
+  adminLogin,
+  getAdminToken,
+  saveAdminSession,
+} from "@/lib/admin-auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,13 +20,36 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Si ya hay sesión activa, saltar al dashboard
+  useEffect(() => {
+    if (getAdminToken()) router.replace("/admin/dashboard");
+  }, [router]);
 
   const submit = async () => {
+    setError(null);
     setLoading(true);
-    // TODO: conectar con POST /api/auth/login del backend Laravel (JWT)
-    console.log({ email, password, remember });
-    await new Promise((r) => setTimeout(r, 600));
-    router.push("/admin/dashboard");
+    try {
+      const res = await adminLogin({ email, password });
+      // Doble verificación por si el backend cambia
+      if (res.user.role !== "admin") {
+        setError(
+          "Esta cuenta no tiene acceso al panel. Solo personal autorizado.",
+        );
+        return;
+      }
+      saveAdminSession(res.user, res.token);
+      router.replace("/admin/dashboard");
+    } catch (err) {
+      const e = err as { message?: string; errors?: Record<string, string[]> };
+      const first = e?.errors
+        ? Object.values(e.errors)[0]?.[0]
+        : undefined;
+      setError(first ?? e?.message ?? "No se pudo iniciar sesión");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -108,6 +136,13 @@ export default function LoginPage() {
             Mantener sesión iniciada
           </span>
         </label>
+
+        {error && (
+          <div className="inline-flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-50 border border-red-100 text-[var(--danger)] text-sm">
+            <AlertCircle size={16} className="shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
 
         <Button
           type="submit"

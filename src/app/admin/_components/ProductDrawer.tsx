@@ -90,12 +90,24 @@ export function ProductDrawer({
     }));
   };
 
-  const handleImages = (files: FileList | null) => {
+  const handleImages = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const urls = Array.from(files)
-      .filter((f) => f.type.startsWith("image/"))
-      .map((f) => URL.createObjectURL(f));
-    setData((d) => ({ ...d, images: [...d.images, ...urls] }));
+    // Convertimos a data URLs base64 para que el backend pueda persistirlas
+    // (los blob: URLs sólo viven en este navegador y serían inútiles).
+    const dataUrls = await Promise.all(
+      Array.from(files)
+        .filter((f) => f.type.startsWith("image/"))
+        .map(
+          (f) =>
+            new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result));
+              reader.onerror = () => reject(reader.error);
+              reader.readAsDataURL(f);
+            }),
+        ),
+    );
+    setData((d) => ({ ...d, images: [...d.images, ...dataUrls] }));
   };
 
   const removeImage = (idx: number) => {
