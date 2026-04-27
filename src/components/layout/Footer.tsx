@@ -38,7 +38,7 @@ const COLUMNS = [
 
 const SOCIAL = [
   { icon: Facebook, label: "Facebook", href: "#" },
-  { icon: Instagram, label: "Instagram", href: "#" },
+  { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/avax_pe/" },
   { icon: Twitter, label: "Twitter", href: "#" },
   { icon: Youtube, label: "Youtube", href: "#" },
 ];

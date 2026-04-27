@@ -21,6 +21,7 @@ export type ShopProduct = {
   sizes: (number | string)[];
   colors: string[];
   badge: "HOT" | "NEW" | "SALE" | null;
+  gender: "HOMBRE" | "MUJER" | "UNISEX" | null;
   stock: number;
   rating: number;
 };
@@ -71,6 +72,7 @@ export type ListProductsParams = {
   q?: string;
   marca?: string;
   categoria?: string;
+  genero?: "HOMBRE" | "MUJER" | "UNISEX";
   precio_min?: number;
   precio_max?: number;
   sort?: "nuevos" | "precio_asc" | "precio_desc" | "nombre";

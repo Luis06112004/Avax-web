@@ -74,7 +74,7 @@
   --color-avax-blue-medium: var(--avax-blue-medium);
   --color-avax-blue-dark: var(--avax-blue-dark);
 
-  --font-sans: var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-sans: var(--font-montserrat), Montserrat, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
   --default-font-family: var(--font-sans);
 

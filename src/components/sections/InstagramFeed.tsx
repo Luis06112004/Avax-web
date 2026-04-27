@@ -17,7 +17,7 @@ export async function InstagramFeed() {
     <section className="container-page py-14">
       <SectionHeader
         tag={{
-          label: "@avax.style",
+          label: "@avax_pe",
           icon: <Instagram size={14} className="text-white" />,
           className:
             "bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white",
@@ -26,7 +26,7 @@ export async function InstagramFeed() {
         subtitle="Inspiración diaria · Lookbook · Drops exclusivos"
         end={
           <a
-            href="https://instagram.com/avax.style"
+            href="https://www.instagram.com/avax_pe/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--avax-black)] text-white text-sm font-bold hover:bg-black transition-colors cursor-pointer"
@@ -44,7 +44,7 @@ export async function InstagramFeed() {
           return (
             <a
               key={i}
-              href="https://instagram.com/avax.style"
+              href="https://www.instagram.com/avax_pe/"
               target="_blank"
               rel="noopener noreferrer"
               className="relative group aspect-square overflow-hidden rounded-2xl bg-white cursor-pointer"
