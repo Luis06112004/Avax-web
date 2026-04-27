@@ -96,8 +96,7 @@ export function HeroCarousel({ slides }: Props) {
 
   return (
     <section
-      className="relative w-full overflow-hidden"
-      style={{ height: "calc(100vh - 80px)", minHeight: "640px" }}
+      className="relative w-full overflow-hidden lg:h-[calc(100vh-96px)] lg:min-h-[640px] py-8 lg:py-0"
     >
       {/* Fondo gradiente fijo (no cambia entre slides) */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#F7F8FB] via-[#EAF1FB] to-[#D9E5F8]" />
@@ -107,8 +106,8 @@ export function HeroCarousel({ slides }: Props) {
       </div>
 
       {/* Contenido — proporciones protegidas con max-width y aspect controlado */}
-      <div className="relative h-full container-page py-6 lg:py-10">
-        <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="relative h-full container-page py-4 lg:py-10">
+        <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center">
           {/* Lado izquierdo: textos */}
           <motion.div
             key={`text-${slide.id}`}
@@ -199,7 +198,7 @@ export function HeroCarousel({ slides }: Props) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, ease: EASE, delay: 0.15 }}
-              className="relative w-full max-w-[560px] aspect-square min-h-0 max-h-[min(70vh,560px)] rounded-[32px] bg-white shadow-2xl overflow-hidden"
+              className="relative w-full max-w-[560px] aspect-[4/5] sm:aspect-square min-h-[320px] max-h-[min(75vh,580px)] rounded-[32px] bg-white shadow-2xl overflow-hidden"
             >
               <AnimatePresence mode="sync" initial={false}>
                 {slide.image ? (
