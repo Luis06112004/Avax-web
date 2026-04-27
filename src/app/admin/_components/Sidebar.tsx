@@ -11,6 +11,7 @@ import {
   Settings,
   LogOut,
   Sparkles,
+  RefreshCw,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ const SECTIONS: NavSection[] = [
   {
     title: "SISTEMA",
     items: [
+      { label: "Sincronización", href: "/admin/sync", icon: RefreshCw },
       {
         label: "Configuración",
         href: "/admin/configuracion",

@@ -1,11 +1,36 @@
 import { Award } from "lucide-react";
-import { featuredProducts } from "@/data/mock";
 import { ProductCard } from "@/components/product/ProductCard";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { listFeatured, type ShopProduct } from "@/lib/shop-api";
+import type { Product } from "@/types";
 
 const TABS = ["Todos", "Hombre", "Mujer"];
 
-export function FeaturedProducts() {
+function toProduct(p: ShopProduct): Product {
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    brand: p.brand,
+    price: p.price,
+    oldPrice: p.oldPrice ?? undefined,
+    discountLabel: p.discountLabel ?? undefined,
+    image: p.image,
+    badge: p.badge ?? undefined,
+    rating: p.rating,
+    stock: p.stock,
+  };
+}
+
+export async function FeaturedProducts() {
+  let products: Product[] = [];
+  try {
+    const res = await listFeatured();
+    products = res.data.slice(0, 8).map(toProduct);
+  } catch (err) {
+    console.error("FeaturedProducts fetch failed", err);
+  }
+
   return (
     <section className="container-page py-14">
       <SectionHeader
@@ -35,11 +60,17 @@ export function FeaturedProducts() {
         className="mb-9"
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-        {featuredProducts.map((product) => (
-          <ProductCard key={product.id} product={product} size="sm" />
-        ))}
-      </div>
+      {products.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-[var(--border)] py-16 text-center text-sm text-[var(--foreground-muted)]">
+          Aún no hay productos destacados. Sincroniza el catálogo desde el panel admin.
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} size="sm" />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

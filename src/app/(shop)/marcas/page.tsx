@@ -10,46 +10,20 @@ import {
 import { BrandCard } from "@/components/product/BrandCard";
 import { Button } from "@/components/ui/Button";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { listBrands, type ShopBrand } from "@/lib/shop-api";
 import type { Brand } from "@/types";
 
-const BRANDS: Brand[] = [
-  { id: "nike", name: "Nike", image: "", modelCount: 124, pillColor: "#1E1E1E" },
-  {
-    id: "adidas",
-    name: "Adidas",
-    image: "",
-    modelCount: 97,
-    pillColor: "#1E1E1E",
-  },
-  {
-    id: "nb",
-    name: "New Balance",
-    image: "",
-    modelCount: 86,
-    pillColor: "#C8102E",
-  },
-  {
-    id: "puma",
-    name: "Puma",
-    image: "",
-    modelCount: 54,
-    pillColor: "#1E1E1E",
-  },
-  {
-    id: "converse",
-    name: "Converse",
-    image: "",
-    modelCount: 38,
-    pillColor: "#1E1E1E",
-  },
-  {
-    id: "jordan",
-    name: "Jordan",
-    image: "",
-    modelCount: 42,
-    pillColor: "#E63946",
-  },
-];
+const PILL_COLORS = ["#1E1E1E", "#C8102E", "#0066CC", "#E63946", "#000000"];
+
+function toBrand(b: ShopBrand, idx: number): Brand {
+  return {
+    id: b.id,
+    name: b.nombre,
+    image: b.logo ?? undefined,
+    modelCount: b.productos_count,
+    pillColor: PILL_COLORS[idx % PILL_COLORS.length],
+  };
+}
 
 const BENEFITS = [
   {
@@ -69,7 +43,19 @@ const BENEFITS = [
   },
 ];
 
-export default function MarcasPage() {
+export default async function MarcasPage() {
+  let brands: Brand[] = [];
+  let totalModels = 0;
+  try {
+    const res = await listBrands();
+    brands = res.data
+      .sort((a, b) => b.productos_count - a.productos_count)
+      .map(toBrand);
+    totalModels = res.data.reduce((sum, b) => sum + b.productos_count, 0);
+  } catch (err) {
+    console.error("Marcas fetch failed", err);
+  }
+
   return (
     <>
       <section className="container-page pt-10 pb-6">
@@ -112,7 +98,7 @@ export default function MarcasPage() {
         <SectionHeader
           tag={{ label: "Catálogo de marcas", icon: <Award size={14} /> }}
           title="Marcas disponibles"
-          subtitle="Más de 440 modelos en stock entre todas nuestras marcas oficiales."
+          subtitle={`Más de ${totalModels} modelos en stock entre todas nuestras marcas oficiales.`}
           end={
             <Link
               href="/tienda"
@@ -125,11 +111,17 @@ export default function MarcasPage() {
           className="mb-9"
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {BRANDS.map((brand) => (
-            <BrandCard key={brand.id} brand={brand} />
-          ))}
-        </div>
+        {brands.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-[var(--border)] py-16 text-center text-sm text-[var(--foreground-muted)]">
+            Aún no hay marcas. Sincroniza el catálogo desde el panel admin.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {brands.map((brand) => (
+              <BrandCard key={brand.id} brand={brand} />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="container-page py-14">

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Heart, ShoppingBag, Plus, Star, Flame } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { IconButton } from "@/components/ui/IconButton";
@@ -65,23 +64,25 @@ export function ProductCard({
     <article className="group flex flex-col bg-white rounded-2xl border border-[var(--border)] overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:border-[var(--primary)] transition-all duration-200">
       <div
         className={cn(
-          "relative w-full flex items-center justify-center bg-gradient-to-br from-[#FAFBFD] to-[#EDF2FA] overflow-hidden",
+          "relative w-full flex items-center justify-center bg-white overflow-hidden",
           imageHeight[size]
         )}
       >
         {product.image ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={product.image}
             alt={product.name}
-            fill
-            sizes="(max-width: 768px) 100vw, 320px"
-            className="object-contain p-6 transition-transform duration-300 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
           />
         ) : (
-          <SneakerPlaceholder
-            size={isSm ? 90 : 130}
-            className="text-[var(--avax-blue-medium)]"
-          />
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#FAFBFD] to-[#EDF2FA]">
+            <SneakerPlaceholder
+              size={isSm ? 90 : 130}
+              className="text-[var(--avax-blue-medium)]"
+            />
+          </div>
         )}
 
         <div className="absolute top-3 left-3 z-10">{renderBadge()}</div>

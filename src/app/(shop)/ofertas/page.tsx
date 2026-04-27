@@ -13,100 +13,24 @@ import {
 import { ProductCard } from "@/components/product/ProductCard";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Button } from "@/components/ui/Button";
+import { listOnSale, type ShopProduct } from "@/lib/shop-api";
 import type { Product } from "@/types";
 
-const OFFERS: Product[] = [
-  {
-    id: "o1",
-    slug: "nike-air-max-sc",
-    name: "Nike Air Max SC",
-    brand: "NIKE",
-    price: 349,
-    oldPrice: 449,
-    discountLabel: "-22%",
-    image: "",
-    rating: 4.9,
-    badge: "HOT",
-  },
-  {
-    id: "o2",
-    slug: "adidas-forum-low",
-    name: "Adidas Forum Low",
-    brand: "ADIDAS",
-    price: 329,
-    oldPrice: 399,
-    discountLabel: "-18%",
-    image: "",
-    rating: 4.8,
-  },
-  {
-    id: "o3",
-    slug: "nb-574",
-    name: "New Balance 574",
-    brand: "NEW BALANCE",
-    price: 299,
-    oldPrice: 359,
-    discountLabel: "-17%",
-    image: "",
-    rating: 4.7,
-  },
-  {
-    id: "o4",
-    slug: "nike-dunk-low",
-    name: "Nike Dunk Low",
-    brand: "NIKE",
-    price: 379,
-    oldPrice: 459,
-    discountLabel: "-30%",
-    image: "",
-    rating: 4.9,
-    badge: "HOT",
-  },
-  {
-    id: "o5",
-    slug: "puma-suede-classic",
-    name: "Puma Suede Classic",
-    brand: "PUMA",
-    price: 219,
-    oldPrice: 299,
-    discountLabel: "-27%",
-    image: "",
-    rating: 4.5,
-  },
-  {
-    id: "o6",
-    slug: "converse-chuck-70",
-    name: "Converse Chuck 70",
-    brand: "CONVERSE",
-    price: 269,
-    oldPrice: 339,
-    discountLabel: "-21%",
-    image: "",
-    rating: 4.6,
-  },
-  {
-    id: "o7",
-    slug: "reebok-classic",
-    name: "Reebok Classic",
-    brand: "REEBOK",
-    price: 229,
-    oldPrice: 299,
-    discountLabel: "-23%",
-    image: "",
-    rating: 4.7,
-  },
-  {
-    id: "o8",
-    slug: "adidas-superstar",
-    name: "Adidas Superstar",
-    brand: "ADIDAS",
-    price: 289,
-    oldPrice: 359,
-    discountLabel: "-19%",
-    image: "",
-    rating: 5.0,
-  },
-];
+function toProduct(p: ShopProduct): Product {
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    brand: p.brand,
+    price: p.price,
+    oldPrice: p.oldPrice ?? undefined,
+    discountLabel: p.discountLabel ?? undefined,
+    image: p.image,
+    badge: p.badge ?? undefined,
+    rating: p.rating,
+    stock: p.stock,
+  };
+}
 
 function useCountdown(seconds: number) {
   const [remaining, setRemaining] = useState(seconds);
@@ -124,8 +48,26 @@ function useCountdown(seconds: number) {
 }
 
 export default function OfertasPage() {
-  // 8 horas en segundos para demo del countdown
   const { h, m, s } = useCountdown(8 * 3600 + 14 * 60 + 36);
+  const [offers, setOffers] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await listOnSale();
+        if (alive) setOffers(res.data.map(toProduct));
+      } catch (err) {
+        console.error("Ofertas fetch failed", err);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
     <>
@@ -192,7 +134,7 @@ export default function OfertasPage() {
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <Tag size={12} className="text-[var(--avax-blue-light)]" />
-                {OFFERS.length} productos en oferta
+                {offers.length} productos en oferta
               </span>
             </div>
           </div>
@@ -211,11 +153,26 @@ export default function OfertasPage() {
           className="mb-9"
         />
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {OFFERS.map((p) => (
-            <ProductCard key={p.id} product={p} size="sm" />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="aspect-[3/4] rounded-2xl bg-[var(--surface-2)] animate-pulse"
+              />
+            ))}
+          </div>
+        ) : offers.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-[var(--border)] py-16 text-center text-sm text-[var(--foreground-muted)]">
+            Aún no hay productos en oferta. Vuelve pronto.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {offers.map((p) => (
+              <ProductCard key={p.id} product={p} size="sm" />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="container-page pb-16">

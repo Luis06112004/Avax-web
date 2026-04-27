@@ -1,8 +1,21 @@
+import Link from "next/link";
 import { Timer, ArrowRight, TimerReset } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { SneakerPlaceholder } from "@/components/ui/SneakerPlaceholder";
+import { listOnSale, listFeatured } from "@/lib/shop-api";
 
-export function PromoBanner() {
+export async function PromoBanner() {
+  let images: string[] = [];
+  let totalAvailable = 0;
+  try {
+    const [sale, feat] = await Promise.all([listOnSale(), listFeatured()]);
+    const all = [...sale.data, ...feat.data];
+    images = Array.from(new Set(all.map((p) => p.image).filter(Boolean))).slice(0, 9);
+    totalAvailable = sale.data.length;
+  } catch (err) {
+    console.error("PromoBanner fetch failed", err);
+  }
+
   return (
     <section className="container-page py-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -27,9 +40,11 @@ export function PromoBanner() {
               En todos los modelos seleccionados
             </p>
             <div className="flex items-center gap-3 mt-4 flex-wrap">
-              <Button variant="white" icon={<ArrowRight size={16} />} iconPosition="right">
-                Ver ofertas
-              </Button>
+              <Link href="/ofertas">
+                <Button variant="white" icon={<ArrowRight size={16} />} iconPosition="right">
+                  Ver ofertas
+                </Button>
+              </Link>
               <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-xs font-bold tracking-[0.15em]">
                 <TimerReset size={14} />
                 02 : 14 : 36
@@ -40,27 +55,36 @@ export function PromoBanner() {
 
         <div className="relative overflow-hidden rounded-[32px] min-h-[380px] bg-[var(--surface-2)]">
           <div className="absolute inset-0 grid grid-cols-3 gap-2 p-3">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div
-                key={i}
-                className="rounded-xl bg-white/80 backdrop-blur-sm flex items-center justify-center"
-              >
-                <SneakerPlaceholder
-                  size={48}
-                  className={
-                    i % 3 === 0
-                      ? "text-[var(--avax-blue-light)]"
-                      : i % 3 === 1
-                        ? "text-[var(--primary)]"
-                        : "text-[var(--avax-blue-dark)]"
-                  }
-                />
-              </div>
-            ))}
+            {Array.from({ length: 9 }).map((_, i) => {
+              const img = images[i % Math.max(1, images.length)];
+              return (
+                <div
+                  key={i}
+                  className="relative rounded-xl bg-white overflow-hidden"
+                >
+                  {img ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={img}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <SneakerPlaceholder
+                        size={48}
+                        className="text-[var(--avax-blue-medium)]"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span className="px-5 py-3 rounded-full bg-white shadow-xl text-sm font-extrabold text-[var(--avax-black)]">
-              + 200 modelos disponibles
+              + {totalAvailable || 200} modelos disponibles
             </span>
           </div>
         </div>

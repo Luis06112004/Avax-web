@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ChevronRight,
@@ -12,205 +12,87 @@ import {
 import { ProductCard } from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import {
+  listBrands,
+  listCategories,
+  listProducts,
+  type ShopProduct,
+} from "@/lib/shop-api";
 import type { Product } from "@/types";
 
-type ShopProduct = Product & {
-  category: string;
-  sizes: number[];
-  colorTags: string[];
-};
-
-const PRODUCTS: ShopProduct[] = [
-  {
-    id: "s1",
-    slug: "nike-dunk-low",
-    name: "Nike Dunk Low",
-    brand: "NIKE",
-    price: 549,
-    image: "",
-    rating: 4.9,
-    badge: "HOT",
-    category: "Lifestyle",
-    sizes: [38, 39, 40, 41, 42, 43],
-    colorTags: ["black", "white"],
-  },
-  {
-    id: "s2",
-    slug: "adidas-superstar",
-    name: "Adidas Superstar",
-    brand: "ADIDAS",
-    price: 359,
-    image: "",
-    rating: 5.0,
-    badge: "NEW",
-    category: "Lifestyle",
-    sizes: [39, 40, 41, 42],
-    colorTags: ["white"],
-  },
-  {
-    id: "s3",
-    slug: "nb-574",
-    name: "New Balance 574",
-    brand: "NEW BALANCE",
-    price: 489,
-    image: "",
-    rating: 4.8,
-    category: "Casual",
-    sizes: [40, 41, 42, 43],
-    colorTags: ["white", "blue"],
-  },
-  {
-    id: "s4",
-    slug: "jordan-1-mid",
-    name: "Jordan 1 Mid",
-    brand: "JORDAN",
-    price: 489,
-    image: "",
-    rating: 5.0,
-    badge: "HOT",
-    category: "Basketball",
-    sizes: [40, 41, 42, 43, 44],
-    colorTags: ["blue", "white"],
-  },
-  {
-    id: "s5",
-    slug: "converse-chuck-70",
-    name: "Converse Chuck 70",
-    brand: "CONVERSE",
-    price: 339,
-    image: "",
-    rating: 4.6,
-    category: "Casual",
-    sizes: [38, 39, 40, 41, 42],
-    colorTags: ["black"],
-  },
-  {
-    id: "s6",
-    slug: "puma-suede-classic",
-    name: "Puma Suede Classic",
-    brand: "PUMA",
-    price: 299,
-    image: "",
-    rating: 4.5,
-    category: "Lifestyle",
-    sizes: [39, 40, 41, 42, 43],
-    colorTags: ["blue"],
-  },
-  {
-    id: "s7",
-    slug: "nike-air-force-1",
-    name: "Nike Air Force 1",
-    brand: "NIKE",
-    price: 424,
-    oldPrice: 529,
-    image: "",
-    rating: 4.9,
-    category: "Lifestyle",
-    sizes: [38, 39, 40, 41, 42, 43, 44],
-    colorTags: ["white"],
-  },
-  {
-    id: "s8",
-    slug: "adidas-gazelle",
-    name: "Adidas Gazelle",
-    brand: "ADIDAS",
-    price: 459,
-    image: "",
-    rating: 5.0,
-    category: "Lifestyle",
-    sizes: [39, 40, 41, 42],
-    colorTags: ["white", "green"],
-  },
-  {
-    id: "s9",
-    slug: "reebok-classic",
-    name: "Reebok Classic",
-    brand: "REEBOK",
-    price: 299,
-    image: "",
-    rating: 4.7,
-    category: "Running",
-    sizes: [40, 41, 42, 43],
-    colorTags: ["white"],
-  },
-  {
-    id: "s10",
-    slug: "nike-air-max-sc",
-    name: "Nike Air Max SC",
-    brand: "NIKE",
-    price: 349,
-    oldPrice: 449,
-    discountLabel: "-22%",
-    image: "",
-    rating: 4.9,
-    category: "Running",
-    sizes: [40, 41, 42, 43],
-    colorTags: ["black", "white"],
-  },
-  {
-    id: "s11",
-    slug: "adidas-forum-low",
-    name: "Adidas Forum Low",
-    brand: "ADIDAS",
-    price: 329,
-    oldPrice: 399,
-    image: "",
-    rating: 4.8,
-    category: "Skate",
-    sizes: [39, 40, 41, 42],
-    colorTags: ["white", "red"],
-  },
-  {
-    id: "s12",
-    slug: "nb-9060",
-    name: "NB 9060",
-    brand: "NEW BALANCE",
-    price: 459,
-    image: "",
-    rating: 4.8,
-    category: "Lifestyle",
-    sizes: [40, 41, 42, 43],
-    colorTags: ["black"],
-  },
-];
-
-const CATEGORIES = ["Running", "Lifestyle", "Skate", "Basketball", "Casual"];
-const BRANDS = [
-  "NIKE",
-  "ADIDAS",
-  "NEW BALANCE",
-  "PUMA",
-  "CONVERSE",
-  "JORDAN",
-  "REEBOK",
-];
-const SIZES = [38, 39, 40, 41, 42, 43, 44];
-const COLORS = [
-  { id: "black", label: "Negro", hex: "#1E1E1E" },
-  { id: "white", label: "Blanco", hex: "#F2F2F2" },
-  { id: "blue", label: "Azul", hex: "#4A7CCF" },
-  { id: "red", label: "Rojo", hex: "#E63946" },
-  { id: "green", label: "Verde", hex: "#16A34A" },
-];
 const SORTS = [
-  { id: "popular", label: "Más populares" },
-  { id: "price-asc", label: "Precio: menor a mayor" },
-  { id: "price-desc", label: "Precio: mayor a menor" },
-  { id: "rating", label: "Mejor valorados" },
+  { id: "nuevos", label: "Más recientes" },
+  { id: "precio_asc", label: "Precio: menor a mayor" },
+  { id: "precio_desc", label: "Precio: mayor a menor" },
+  { id: "nombre", label: "Nombre A-Z" },
+] as const;
+
+const COLORS = [
+  { id: "negro", label: "Negro", hex: "#1E1E1E" },
+  { id: "blanco", label: "Blanco", hex: "#F2F2F2" },
+  { id: "azul", label: "Azul", hex: "#4A7CCF" },
+  { id: "rojo", label: "Rojo", hex: "#E63946" },
+  { id: "verde", label: "Verde", hex: "#16A34A" },
+  { id: "gris", label: "Gris", hex: "#9CA3AF" },
 ];
 
-const PER_PAGE = 9;
+const PER_PAGE = 12;
+
+function toProduct(p: ShopProduct): Product {
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    brand: p.brand,
+    price: p.price,
+    oldPrice: p.oldPrice ?? undefined,
+    discountLabel: p.discountLabel ?? undefined,
+    image: p.image,
+    badge: p.badge ?? undefined,
+    rating: p.rating,
+    stock: p.stock,
+  };
+}
 
 export default function TiendaPage() {
+  const [allProducts, setAllProducts] = useState<ShopProduct[]>([]);
+  const [brandsList, setBrandsList] = useState<string[]>([]);
+  const [categoriesList, setCategoriesList] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [categories, setCategories] = useState<Set<string>>(new Set());
   const [brands, setBrands] = useState<Set<string>>(new Set());
-  const [sizes, setSizes] = useState<Set<number>>(new Set());
   const [colors, setColors] = useState<Set<string>>(new Set());
   const [priceMin, setPriceMin] = useState<string>("");
   const [priceMax, setPriceMax] = useState<string>("");
-  const [sort, setSort] = useState(SORTS[0].id);
+  const [sort, setSort] = useState<(typeof SORTS)[number]["id"]>(SORTS[0].id);
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const [prodRes, brandRes, catRes] = await Promise.all([
+          listProducts({ per_page: 200 }),
+          listBrands(),
+          listCategories(),
+        ]);
+        if (!alive) return;
+        setAllProducts(prodRes.data);
+        setBrandsList(brandRes.data.map((b) => b.nombre.toUpperCase()));
+        setCategoriesList(catRes.data.map((c) => c.nombre));
+      } catch (err) {
+        console.error("Tienda fetch failed", err);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const toggle = <T,>(set: Set<T>, value: T): Set<T> => {
     const next = new Set(set);
@@ -220,25 +102,26 @@ export default function TiendaPage() {
   };
 
   const filtered = useMemo(() => {
-    let list = PRODUCTS.filter((p) => {
+    let list = allProducts.filter((p) => {
       if (categories.size > 0 && !categories.has(p.category)) return false;
       if (brands.size > 0 && !brands.has(p.brand)) return false;
-      if (sizes.size > 0 && !p.sizes.some((s) => sizes.has(s))) return false;
-      if (colors.size > 0 && !p.colorTags.some((c) => colors.has(c))) return false;
+      if (colors.size > 0) {
+        const lower = p.colors.map((c) => c.toLowerCase());
+        const matches = [...colors].some((c) => lower.some((l) => l.includes(c)));
+        if (!matches) return false;
+      }
       const min = priceMin ? Number(priceMin) : 0;
       const max = priceMax ? Number(priceMax) : Infinity;
       if (p.price < min || p.price > max) return false;
       return true;
     });
 
-    if (sort === "price-asc") list = [...list].sort((a, b) => a.price - b.price);
-    else if (sort === "price-desc")
-      list = [...list].sort((a, b) => b.price - a.price);
-    else if (sort === "rating")
-      list = [...list].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    if (sort === "precio_asc") list = [...list].sort((a, b) => a.price - b.price);
+    else if (sort === "precio_desc") list = [...list].sort((a, b) => b.price - a.price);
+    else if (sort === "nombre") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
 
     return list;
-  }, [categories, brands, sizes, colors, priceMin, priceMax, sort]);
+  }, [allProducts, categories, brands, colors, priceMin, priceMax, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -250,7 +133,6 @@ export default function TiendaPage() {
   const activeFiltersCount =
     categories.size +
     brands.size +
-    sizes.size +
     colors.size +
     (priceMin ? 1 : 0) +
     (priceMax ? 1 : 0);
@@ -258,7 +140,6 @@ export default function TiendaPage() {
   const clearAll = () => {
     setCategories(new Set());
     setBrands(new Set());
-    setSizes(new Set());
     setColors(new Set());
     setPriceMin("");
     setPriceMax("");
@@ -272,17 +153,18 @@ export default function TiendaPage() {
           Inicio
         </Link>
         <ChevronRight size={12} />
-        <span className="text-[var(--avax-black)] font-semibold">Zapatillas</span>
+        <span className="text-[var(--avax-black)] font-semibold">Tienda</span>
       </nav>
 
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-4xl md:text-5xl font-black text-[var(--avax-black)] tracking-tight">
-            Zapatillas
+            Catálogo
           </h1>
           <p className="text-sm text-[var(--foreground-muted)] mt-1">
-            {filtered.length} producto{filtered.length === 1 ? "" : "s"} encontrado
-            {filtered.length === 1 ? "" : "s"}
+            {loading
+              ? "Cargando productos…"
+              : `${filtered.length} producto${filtered.length === 1 ? "" : "s"} encontrado${filtered.length === 1 ? "" : "s"}`}
           </p>
         </div>
 
@@ -290,7 +172,7 @@ export default function TiendaPage() {
           <button
             type="button"
             onClick={() => setFiltersOpen(true)}
-            className="md:hidden inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[var(--avax-black)] text-white text-sm font-semibold"
+            className="md:hidden inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[var(--avax-black)] text-white text-sm font-semibold cursor-pointer"
           >
             <SlidersHorizontal size={14} />
             Filtros
@@ -305,7 +187,7 @@ export default function TiendaPage() {
             <span className="sr-only">Ordenar por</span>
             <select
               value={sort}
-              onChange={(e) => setSort(e.target.value)}
+              onChange={(e) => setSort(e.target.value as typeof sort)}
               className="appearance-none pl-4 pr-10 py-2.5 rounded-full bg-white border border-[var(--border-strong)] text-sm font-semibold text-[var(--avax-black)] cursor-pointer hover:border-[var(--primary)] transition-colors"
             >
               {SORTS.map((s) => (
@@ -326,9 +208,10 @@ export default function TiendaPage() {
         <FiltersPanel
           isOpen={filtersOpen}
           onClose={() => setFiltersOpen(false)}
+          categoriesList={categoriesList}
+          brandsList={brandsList}
           categories={categories}
           brands={brands}
-          sizes={sizes}
           colors={colors}
           priceMin={priceMin}
           priceMax={priceMax}
@@ -338,10 +221,6 @@ export default function TiendaPage() {
           }}
           onToggleBrand={(b) => {
             setBrands((s) => toggle(s, b));
-            setPage(1);
-          }}
-          onToggleSize={(sz) => {
-            setSizes((s) => toggle(s, sz));
             setPage(1);
           }}
           onToggleColor={(c) => {
@@ -361,7 +240,16 @@ export default function TiendaPage() {
         />
 
         <div className="flex flex-col gap-8 min-w-0">
-          {paginated.length === 0 ? (
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="aspect-[3/4] rounded-2xl bg-[var(--surface-2)] animate-pulse"
+                />
+              ))}
+            </div>
+          ) : paginated.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center py-20 rounded-3xl bg-[var(--surface-2)]">
               <p className="text-lg font-bold text-[var(--avax-black)] mb-2">
                 Sin resultados
@@ -376,7 +264,7 @@ export default function TiendaPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {paginated.map((p) => (
-                <ProductCard key={p.id} product={p} size="sm" />
+                <ProductCard key={p.id} product={toProduct(p)} size="sm" />
               ))}
             </div>
           )}
@@ -397,15 +285,15 @@ export default function TiendaPage() {
 function FiltersPanel(props: {
   isOpen: boolean;
   onClose: () => void;
+  categoriesList: string[];
+  brandsList: string[];
   categories: Set<string>;
   brands: Set<string>;
-  sizes: Set<number>;
   colors: Set<string>;
   priceMin: string;
   priceMax: string;
   onToggleCategory: (c: string) => void;
   onToggleBrand: (b: string) => void;
-  onToggleSize: (s: number) => void;
   onToggleColor: (c: string) => void;
   onPriceMinChange: (v: string) => void;
   onPriceMaxChange: (v: string) => void;
@@ -420,72 +308,72 @@ function FiltersPanel(props: {
           type="button"
           onClick={props.onClose}
           aria-label="Cerrar filtros"
-          className="w-9 h-9 rounded-full bg-[var(--surface-2)] flex items-center justify-center"
+          className="w-9 h-9 rounded-full bg-[var(--surface-2)] flex items-center justify-center cursor-pointer"
         >
           <X size={16} />
         </button>
       </div>
 
-      <FilterGroup title="Categorías">
-        {CATEGORIES.map((c) => (
-          <FilterCheckbox
-            key={c}
-            label={c}
-            checked={props.categories.has(c)}
-            onChange={() => props.onToggleCategory(c)}
-          />
-        ))}
-      </FilterGroup>
+      {props.categoriesList.length > 0 && (
+        <FilterGroup title="Categorías">
+          <div className="flex flex-col gap-2">
+            {props.categoriesList.map((c) => (
+              <label
+                key={c}
+                className="flex items-center gap-2.5 text-sm text-[var(--foreground)] cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={props.categories.has(c)}
+                  onChange={() => props.onToggleCategory(c)}
+                  className="w-4 h-4 rounded border-[var(--border-strong)] text-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]"
+                />
+                {c}
+              </label>
+            ))}
+          </div>
+        </FilterGroup>
+      )}
 
-      <FilterGroup title="Marcas">
-        {BRANDS.map((b) => (
-          <FilterCheckbox
-            key={b}
-            label={b.charAt(0) + b.slice(1).toLowerCase()}
-            checked={props.brands.has(b)}
-            onChange={() => props.onToggleBrand(b)}
-          />
-        ))}
-      </FilterGroup>
+      {props.brandsList.length > 0 && (
+        <FilterGroup title="Marcas">
+          <div className="flex flex-col gap-2">
+            {props.brandsList.map((b) => (
+              <label
+                key={b}
+                className="flex items-center gap-2.5 text-sm text-[var(--foreground)] cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={props.brands.has(b)}
+                  onChange={() => props.onToggleBrand(b)}
+                  className="w-4 h-4 rounded border-[var(--border-strong)] text-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]"
+                />
+                {b}
+              </label>
+            ))}
+          </div>
+        </FilterGroup>
+      )}
 
-      <FilterGroup title="Talla">
+      <FilterGroup title="Colores">
         <div className="flex flex-wrap gap-2">
-          {SIZES.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => props.onToggleSize(s)}
-              className={cn(
-                "min-w-10 h-10 px-2 rounded-lg border text-sm font-bold transition-colors",
-                props.sizes.has(s)
-                  ? "bg-[var(--avax-black)] border-[var(--avax-black)] text-white"
-                  : "bg-white border-[var(--border-strong)] text-[var(--avax-black)] hover:border-[var(--primary)]",
-              )}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      </FilterGroup>
-
-      <FilterGroup title="Color">
-        <div className="flex items-center gap-2.5 flex-wrap">
           {COLORS.map((c) => {
-            const isOn = props.colors.has(c.id);
+            const active = props.colors.has(c.id);
             return (
               <button
                 key={c.id}
                 type="button"
-                aria-label={c.label}
-                title={c.label}
                 onClick={() => props.onToggleColor(c.id)}
+                aria-label={c.label}
                 className={cn(
-                  "w-8 h-8 rounded-full border-2 transition-transform",
-                  isOn
-                    ? "border-[var(--primary)] scale-110"
-                    : "border-[var(--border-strong)] hover:scale-105",
+                  "relative w-9 h-9 rounded-full border-2 transition-all cursor-pointer",
+                  active
+                    ? "border-[var(--avax-black)] scale-110"
+                    : "border-[var(--border)] hover:border-[var(--foreground-subtle)]",
                 )}
                 style={{ backgroundColor: c.hex }}
+                title={c.label}
               />
             );
           })}
@@ -496,35 +384,31 @@ function FiltersPanel(props: {
         <div className="flex items-center gap-2">
           <input
             type="number"
-            inputMode="numeric"
-            min={0}
             placeholder="Min"
             value={props.priceMin}
             onChange={(e) => props.onPriceMinChange(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg bg-[var(--surface-2)] text-sm outline-none focus:bg-white focus:ring-1 focus:ring-[var(--primary)]"
+            className="w-full px-3 py-2 rounded-lg bg-[var(--surface-2)] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
-          <span className="text-[var(--foreground-subtle)]">—</span>
+          <span className="text-[var(--foreground-muted)]">—</span>
           <input
             type="number"
-            inputMode="numeric"
-            min={0}
             placeholder="Max"
             value={props.priceMax}
             onChange={(e) => props.onPriceMaxChange(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg bg-[var(--surface-2)] text-sm outline-none focus:bg-white focus:ring-1 focus:ring-[var(--primary)]"
+            className="w-full px-3 py-2 rounded-lg bg-[var(--surface-2)] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
         </div>
       </FilterGroup>
 
-      <Button
-        variant="dark"
-        size="md"
-        fullWidth
-        onClick={props.onClearAll}
-        disabled={props.activeCount === 0}
-      >
-        Limpiar filtros{props.activeCount > 0 ? ` (${props.activeCount})` : ""}
-      </Button>
+      {props.activeCount > 0 && (
+        <button
+          type="button"
+          onClick={props.onClearAll}
+          className="text-sm font-semibold text-[var(--primary)] hover:underline self-start cursor-pointer"
+        >
+          Limpiar filtros ({props.activeCount})
+        </button>
+      )}
     </aside>
   );
 
@@ -534,15 +418,13 @@ function FiltersPanel(props: {
 
       {props.isOpen && (
         <div
-          className="fixed inset-0 z-50 md:hidden"
-          role="dialog"
-          aria-modal="true"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
+          onClick={props.onClose}
         >
           <div
-            className="absolute inset-0 bg-black/50"
-            onClick={props.onClose}
-          />
-          <div className="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-white p-6 overflow-y-auto">
+            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-sm bg-white p-6 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             {Inner}
           </div>
         </div>
@@ -551,42 +433,14 @@ function FiltersPanel(props: {
   );
 }
 
-function FilterGroup({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-xs font-extrabold tracking-[0.18em] text-[var(--avax-black)] uppercase">
+      <h3 className="text-xs font-extrabold tracking-[0.15em] uppercase text-[var(--foreground-muted)]">
         {title}
       </h3>
-      <div className="flex flex-col gap-2">{children}</div>
+      {children}
     </div>
-  );
-}
-
-function FilterCheckbox({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: () => void;
-}) {
-  return (
-    <label className="inline-flex items-center gap-2.5 cursor-pointer text-sm text-[var(--foreground-muted)] hover:text-[var(--avax-black)]">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-        className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--primary)]"
-      />
-      {label}
-    </label>
   );
 }
 
@@ -600,43 +454,44 @@ function Pagination({
   onChange: (p: number) => void;
 }) {
   return (
-    <nav className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-2">
       <button
         type="button"
         onClick={() => onChange(Math.max(1, page - 1))}
         disabled={page === 1}
-        aria-label="Página anterior"
-        className="w-10 h-10 rounded-full bg-white border border-[var(--border-strong)] flex items-center justify-center hover:border-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        aria-label="Anterior"
+        className="w-10 h-10 rounded-full border border-[var(--border-strong)] flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:border-[var(--primary)] cursor-pointer transition-colors"
       >
         <ChevronLeft size={16} />
       </button>
-
-      {Array.from({ length: total }, (_, i) => i + 1).map((p) => (
-        <button
-          key={p}
-          type="button"
-          onClick={() => onChange(p)}
-          aria-current={p === page ? "page" : undefined}
-          className={cn(
-            "min-w-10 h-10 px-3 rounded-full text-sm font-bold transition-colors",
-            p === page
-              ? "bg-[var(--avax-black)] text-white"
-              : "bg-white border border-[var(--border-strong)] text-[var(--avax-black)] hover:border-[var(--primary)]",
-          )}
-        >
-          {p}
-        </button>
-      ))}
-
+      {Array.from({ length: total }).map((_, i) => {
+        const n = i + 1;
+        const active = n === page;
+        return (
+          <button
+            key={n}
+            type="button"
+            onClick={() => onChange(n)}
+            className={cn(
+              "min-w-10 h-10 px-3 rounded-full text-sm font-bold transition-colors cursor-pointer",
+              active
+                ? "bg-[var(--avax-black)] text-white"
+                : "border border-[var(--border-strong)] hover:border-[var(--primary)]",
+            )}
+          >
+            {n}
+          </button>
+        );
+      })}
       <button
         type="button"
         onClick={() => onChange(Math.min(total, page + 1))}
         disabled={page === total}
-        aria-label="Página siguiente"
-        className="w-10 h-10 rounded-full bg-[var(--avax-black)] text-white flex items-center justify-center hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        aria-label="Siguiente"
+        className="w-10 h-10 rounded-full border border-[var(--border-strong)] flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:border-[var(--primary)] cursor-pointer transition-colors"
       >
         <ChevronRight size={16} />
       </button>
-    </nav>
+    </div>
   );
 }

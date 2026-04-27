@@ -1,9 +1,33 @@
 import Link from "next/link";
 import { Sparkles, ArrowUpRight } from "lucide-react";
-import { brands } from "@/data/mock";
 import { BrandCard } from "@/components/product/BrandCard";
+import { listBrands, type ShopBrand } from "@/lib/shop-api";
+import type { Brand } from "@/types";
 
-export function BrandsBanner() {
+const PILL_COLORS = ["#1E1E1E", "#C8102E", "#1E1E1E", "#0066CC", "#000000"];
+
+function toBrand(b: ShopBrand, idx: number): Brand {
+  return {
+    id: b.id,
+    name: b.nombre,
+    image: b.logo ?? undefined,
+    modelCount: b.productos_count,
+    pillColor: PILL_COLORS[idx % PILL_COLORS.length],
+  };
+}
+
+export async function BrandsBanner() {
+  let brands: Brand[] = [];
+  try {
+    const res = await listBrands();
+    brands = res.data
+      .sort((a, b) => b.productos_count - a.productos_count)
+      .slice(0, 3)
+      .map(toBrand);
+  } catch (err) {
+    console.error("BrandsBanner fetch failed", err);
+  }
+
   return (
     <section className="container-page py-10">
       <div className="relative rounded-[32px] bg-[var(--avax-black)] overflow-hidden p-8 md:p-12 lg:p-14">
@@ -35,11 +59,17 @@ export function BrandsBanner() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {brands.map((brand) => (
-              <BrandCard key={brand.id} brand={brand} />
-            ))}
-          </div>
+          {brands.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/20 py-14 text-center text-sm text-white/60">
+              Aún no hay marcas. Sincroniza el catálogo desde el panel admin.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              {brands.map((brand) => (
+                <BrandCard key={brand.id} brand={brand} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>
