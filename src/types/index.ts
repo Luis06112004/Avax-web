@@ -1,8 +1,14 @@
 export type Brand = {
   id: string;
   name: string;
-  logo: string;
+  logo?: string;
+  image?: string;
+  modelCount?: number;
+  /** Color del pill de marca cuando se muestra sobre la imagen */
+  pillColor?: string;
 };
+
+export type ProductBadge = "HOT" | "NEW" | "SALE";
 
 export type Product = {
   id: string;
@@ -11,10 +17,13 @@ export type Product = {
   brand: string;
   price: number;
   oldPrice?: number;
+  /** Texto del descuento, ej: "-30%" */
+  discountLabel?: string;
   image: string;
   images?: string[];
-  badge?: "NEW" | "SALE" | "HOT";
+  badge?: ProductBadge;
   rating?: number;
+  reviewsCount?: number;
   stock?: number;
 };
 
@@ -24,6 +33,10 @@ export type Testimonial = {
   avatar?: string;
   rating: number;
   comment: string;
+  verified?: boolean;
+  location?: string;
+  /** Texto libre. Ej: "Compró hace 2 semanas" */
+  purchasedAgo?: string;
 };
 
 export type InstagramPost = {

@@ -1,0 +1,8 @@
+export { Hero } from "./Hero";
+export { BrandsBanner } from "./BrandsBanner";
+export { PopularNow } from "./PopularNow";
+export { PromoBanner } from "./PromoBanner";
+export { NewReleases } from "./NewReleases";
+export { FeaturedProducts } from "./FeaturedProducts";
+export { Testimonials } from "./Testimonials";
+export { InstagramFeed } from "./InstagramFeed";

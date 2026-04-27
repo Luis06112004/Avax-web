@@ -1,47 +1,92 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0f1f;
-  --foreground: #f5f6fa;
-  --surface: #111933;
-  --surface-2: #1a2547;
-  --muted: #8a93b3;
-  --border: #1f2a4a;
-  --primary: #1e62ff;
-  --primary-hover: #1854dc;
-  --accent: #e63946;
-  --accent-hover: #c92e3b;
-  --success: #22c55e;
+  /* === AVAX BRAND === */
+  --avax-black: #1e1e1e;
+  --avax-blue-light: #5fa9d6;
+  --avax-blue-medium: #4a7ccf;
+  --avax-blue-dark: #3a5fbf;
+  --avax-bg-soft: #f2f2f2;
+
+  /* === SEMANTIC TOKENS === */
+  --background: #ffffff;
+  --background-soft: #f7f8fb;
+  --foreground: #1e1e1e;
+  --foreground-muted: #5a6172;
+  --foreground-subtle: #8a93a6;
+
+  --surface: #ffffff;
+  --surface-2: #f2f2f2;
+  --surface-3: #ebeef3;
+
+  --border: #e5e7eb;
+  --border-strong: #cdd2dc;
+
+  --primary: #4a7ccf;
+  --primary-hover: #3a5fbf;
+  --primary-soft: #eaf1fb;
+
+  --accent: #5fa9d6;
+  --accent-hover: #4a91c0;
+
+  --success: #16a34a;
   --warning: #f59e0b;
+  --danger: #dc2626;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-soft: var(--background-soft);
   --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
+
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
-  --color-muted: var(--muted);
+  --color-surface-3: var(--surface-3);
+
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-danger: var(--danger);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-avax-black: var(--avax-black);
+  --color-avax-blue-light: var(--avax-blue-light);
+  --color-avax-blue-medium: var(--avax-blue-medium);
+  --color-avax-blue-dark: var(--avax-blue-dark);
 
-  --radius-card: 14px;
+  --font-sans: var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+  --default-font-family: var(--font-sans);
+
+  --radius-card: 16px;
   --radius-pill: 999px;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html,
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  font-family: inherit;
 }
 
 .container-page {
@@ -55,4 +100,21 @@ body {
   .container-page {
     padding-inline: 2rem;
   }
+}
+
+.gradient-avax {
+  background: linear-gradient(
+    135deg,
+    var(--avax-blue-light) 0%,
+    var(--avax-blue-medium) 50%,
+    var(--avax-blue-dark) 100%
+  );
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, #f7f8fb 0%, #eaf1fb 100%);
+}
+
+.gradient-promo {
+  background: linear-gradient(135deg, #4a7ccf 0%, #3a5fbf 100%);
 }

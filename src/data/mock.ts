@@ -1,28 +1,140 @@
 import type { Brand, Product, Testimonial, InstagramPost } from "@/types";
 
 export const brands: Brand[] = [
-  { id: "nb", name: "New Balance", logo: "/images/brands/new-balance.svg" },
-  { id: "nike", name: "Nike", logo: "/images/brands/nike.svg" },
-  { id: "adidas", name: "Adidas", logo: "/images/brands/adidas.svg" },
+  {
+    id: "nike",
+    name: "Nike",
+    image: "",
+    modelCount: 124,
+    pillColor: "#1E1E1E",
+  },
+  {
+    id: "nb",
+    name: "New Balance",
+    image: "",
+    modelCount: 86,
+    pillColor: "#C8102E",
+  },
+  {
+    id: "adidas",
+    name: "Adidas",
+    image: "",
+    modelCount: 97,
+    pillColor: "#1E1E1E",
+  },
 ];
 
 export const popularProducts: Product[] = [
-  { id: "p1", slug: "air-max-sc", name: "Nike Air Max SC", brand: "Nike", price: 349, image: "/images/products/p1.png", badge: "HOT" },
-  { id: "p2", slug: "nb-574", name: "New Balance 574", brand: "New Balance", price: 299, image: "/images/products/p2.png" },
-  { id: "p3", slug: "adidas-forum", name: "Adidas Forum Low", brand: "Adidas", price: 329, image: "/images/products/p3.png", badge: "NEW" },
+  {
+    id: "p1",
+    slug: "nike-air-max-sc",
+    name: "Nike Air Max SC",
+    brand: "NIKE",
+    price: 349,
+    oldPrice: 449,
+    image: "",
+    badge: "HOT",
+    rating: 4.9,
+  },
+  {
+    id: "p2",
+    slug: "adidas-forum-low",
+    name: "Adidas Forum Low",
+    brand: "ADIDAS",
+    price: 329,
+    oldPrice: 399,
+    image: "",
+    rating: 4.8,
+  },
+  {
+    id: "p3",
+    slug: "nb-574",
+    name: "New Balance 574",
+    brand: "NEW BALANCE",
+    price: 299,
+    oldPrice: 359,
+    image: "",
+    rating: 4.7,
+  },
 ];
 
 export const featuredProducts: Product[] = [
-  { id: "f1", slug: "air-jordan-3", name: "Air Jordan 3", brand: "Nike", price: 599, oldPrice: 699, image: "/images/products/f1.png", badge: "SALE" },
-  { id: "f2", slug: "yeezy-350", name: "Yeezy Boost 350", brand: "Adidas", price: 899, image: "/images/products/f2.png" },
-  { id: "f3", slug: "nb-9060", name: "New Balance 9060", brand: "New Balance", price: 459, image: "/images/products/f3.png" },
-  { id: "f4", slug: "dunk-low", name: "Nike Dunk Low", brand: "Nike", price: 379, image: "/images/products/f4.png", badge: "HOT" },
+  {
+    id: "f1",
+    slug: "nike-dunk-low",
+    name: "Nike Dunk Low",
+    brand: "NIKE",
+    price: 379,
+    oldPrice: 459,
+    discountLabel: "-30%",
+    image: "",
+    rating: 4.9,
+  },
+  {
+    id: "f2",
+    slug: "nb-9060",
+    name: "NB 9060",
+    brand: "NEW BALANCE",
+    price: 459,
+    image: "",
+    rating: 4.8,
+  },
+  {
+    id: "f3",
+    slug: "air-max-90",
+    name: "Air Max 90",
+    brand: "NIKE",
+    price: 429,
+    image: "",
+    badge: "HOT",
+    rating: 4.9,
+  },
+  {
+    id: "f4",
+    slug: "samba-og",
+    name: "Samba OG",
+    brand: "ADIDAS",
+    price: 359,
+    image: "",
+    badge: "NEW",
+    rating: 4.7,
+  },
 ];
 
 export const testimonials: Testimonial[] = [
-  { id: "t1", name: "Carlos R.", rating: 5, comment: "Excelente atención y los productos son originales. Llegó antes de lo esperado." },
-  { id: "t2", name: "María L.", rating: 5, comment: "La mejor tienda de zapatillas en Perú, ya he comprado 3 veces y nunca decepciona." },
-  { id: "t3", name: "Diego P.", rating: 4, comment: "Buena calidad y precios competitivos. Volveré a comprar pronto." },
+  {
+    id: "t1",
+    name: "Carlos Ramírez",
+    rating: 5,
+    comment:
+      "Excelente atención y producto 100% original. Llegó antes de tiempo y el packaging premium. Volveré a comprar sin duda.",
+    avatar: "",
+    verified: true,
+    location: "Lima",
+    purchasedAgo: "Compró hace 2 semanas",
+  },
+  {
+    id: "t2",
+    name: "María López",
+    rating: 5,
+    comment:
+      "La mejor tienda de zapatillas en Perú. Ya he comprado 3 veces y nunca decepciona. Atención top y envío rápido.",
+    avatar: "",
+    verified: true,
+    location: "Arequipa",
+    purchasedAgo: "Compró hace 1 mes",
+  },
+  {
+    id: "t3",
+    name: "Diego Paredes",
+    rating: 5,
+    comment:
+      "Calidad premium y precios competitivos. El sistema de envíos y devoluciones funciona perfecto. 100% recomendado.",
+    avatar: "",
+    verified: true,
+    location: "Trujillo",
+    purchasedAgo: "Compró hace 3 días",
+  },
 ];
 
 export const instagramPosts: InstagramPost[] = [
