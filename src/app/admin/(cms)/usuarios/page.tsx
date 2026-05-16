@@ -9,7 +9,6 @@ import { Topbar } from "../../_components/Topbar";
 import { cn } from "@/lib/utils";
 
 export default function UsuariosPage() {
-  // --- 1. ESTADO DE DATOS ---
   const [usuarios, setUsuarios] = useState([
     { id: 1, nombre: "Jimena", email: "jimena@avax.com", rol: "Admin", estado: "Activo" },
     { id: 2, nombre: "Admin Principal", email: "admin@avax.com", rol: "Admin", estado: "Activo" },
@@ -24,7 +23,6 @@ export default function UsuariosPage() {
     { id: 11, nombre: "Sonia Valle", email: "sonia@avax.com", rol: "Ventas", estado: "Activo" },
   ]);
 
-  // --- 2. ESTADOS DE UI Y FILTROS ---
   const [search, setSearch] = useState("");
   const [filterRol, setFilterRol] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
@@ -40,7 +38,6 @@ export default function UsuariosPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 7;
 
-  // --- 3. LÓGICA DE FILTRADO ---
   const filtered = useMemo(() => {
     return usuarios.filter(u => {
       const matchesSearch = u.nombre.toLowerCase().includes(search.toLowerCase()) || 
@@ -52,7 +49,6 @@ export default function UsuariosPage() {
     });
   }, [usuarios, search, filterRol, filterEstado]);
 
-  // Reset de página al filtrar
   useEffect(() => {
     setCurrentPage(1);
   }, [search, filterRol, filterEstado]);
@@ -60,7 +56,6 @@ export default function UsuariosPage() {
   const totalPages = Math.ceil(filtered.length / usersPerPage);
   const currentUsers = filtered.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
-  // --- 4. FUNCIONES DE ACCIÓN ---
   const showToast = (msg: string, tone: "ok" | "err" = "ok") => {
     setToast({ msg, tone });
     setTimeout(() => setToast(null), 2500);
@@ -126,14 +121,12 @@ export default function UsuariosPage() {
       />
 
       <div className="px-6 lg:px-8 py-8 flex flex-col gap-6">
-        {/* Tarjetas Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Stat label="Total Usuarios" value={stats.total} icon={Users} />
           <Stat label="Usuarios Activos" value={stats.activos} accent="ok" icon={ShieldCheck} />
           <Stat label="En Pausa" value={stats.inactivos} accent="err" icon={UserCircle} />
         </div>
 
-        {/* Filtros rápidos */}
         <div className="flex flex-col md:flex-row md:items-center gap-3">
           <div className="relative flex-1 max-w-md">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-fg-subtle)]" />
@@ -168,7 +161,6 @@ export default function UsuariosPage() {
           </select>
         </div>
 
-        {/* TABLA */}
         <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-2xl overflow-hidden shadow-sm">
           <table className="w-full text-left border-collapse">
             <thead className="bg-white/5 border-b border-[var(--admin-border)]">
@@ -221,7 +213,6 @@ export default function UsuariosPage() {
             </tbody>
           </table>
 
-          {/* NAVEGACIÓN */}
           <div className="flex items-center justify-between p-4 border-t border-[var(--admin-border)] bg-white/[0.02]">
             <p className="text-[10px] text-[var(--admin-fg-subtle)] font-bold uppercase tracking-widest">
               Página <span className="text-[var(--admin-fg)]">{currentPage}</span> de <span className="text-[var(--admin-fg)]">{totalPages || 1}</span>
@@ -248,7 +239,6 @@ export default function UsuariosPage() {
         </div>
       </div>
 
-      {/* DRAWER */}
       {isDrawerOpen && (
         <div className="fixed inset-0 z-[100] flex justify-end">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsDrawerOpen(false)} />
@@ -292,7 +282,6 @@ export default function UsuariosPage() {
         </div>
       )}
 
-      {/* MODAL ELIMINACIÓN */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsDeleteModalOpen(false)} />
@@ -308,7 +297,6 @@ export default function UsuariosPage() {
         </div>
       )}
 
-      {/* NOTIFICACIÓN TOAST */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-[200] animate-in fade-in slide-in-from-bottom-4">
           <div className={cn(

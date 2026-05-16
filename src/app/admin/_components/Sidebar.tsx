@@ -39,12 +39,15 @@ type NavSection = {
 const SECTIONS: NavSection[] = [
   {
     title: "MENU",
-    items: [{ label: "General", href: "/admin/dashboard", icon: LayoutDashboard }],
+    items: [
+      { label: "General", href: "/admin/dashboard", icon: LayoutDashboard },
+    ],
   },
   {
     title: "CONTENIDO",
     items: [
       { label: "Productos", href: "/admin/productos", icon: ShoppingBag },
+      { label: "Usuarios", href: "/admin/usuarios", icon: Users }, // <-- AÑADIDO Y ACTIVO
       { label: "Categorías", href: "/admin/categorias", icon: Tag, soon: true },
       { label: "Banners", href: "/admin/banners", icon: Layers, soon: true },
       { label: "Clientes", href: "/admin/clientes", icon: Users, soon: true },
@@ -101,7 +104,8 @@ export function Sidebar() {
   };
 
   const displayName = user?.name ?? "Sin sesión";
-  const displayCargo = user?.cargo ?? (user?.role === "admin" ? "Administrador" : "");
+  const displayCargo =
+    user?.cargo ?? (user?.role === "admin" ? "Administrador" : "");
 
   return (
     <aside className="hidden lg:flex flex-col w-[260px] shrink-0 h-screen sticky top-0 bg-[var(--admin-sidebar)] border-r border-[var(--admin-border)]">
@@ -131,7 +135,8 @@ export function Sidebar() {
             <ul className="flex flex-col gap-0.5">
               {section.items.map((item) => {
                 const isActive =
-                  pathname === item.href || pathname?.startsWith(item.href + "/");
+                  pathname === item.href ||
+                  pathname?.startsWith(item.href + "/");
                 const Icon = item.icon;
 
                 return (
