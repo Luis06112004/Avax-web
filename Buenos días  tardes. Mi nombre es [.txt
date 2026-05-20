@@ -1,0 +1,11 @@
+"Buenos días / tardes. Mi nombre es [tu nombre], soy estudiante de Ingeniería de Sistemas en mis últimos ciclos, y hoy quiero compartir contigo quién soy como futuro profesional y hacia dónde me dirijo."
+
+"A lo largo de mi carrera he desarrollado tres habilidades que considero fundamentales: el pensamiento analítico para abordar problemas complejos desde la raíz, la comunicación efectiva para transmitir ideas técnicas de forma clara, y el trabajo en equipo, porque sé que los mejores resultados siempre se construyen en conjunto."
+
+"Mi principal motivación para culminar esta carrera es lograr estabilidad y crecimiento profesional. Sé que el esfuerzo de estos años es una inversión real en mi futuro, y eso me impulsa a dar lo mejor cada día hasta llegar a la meta."
+
+"El área en la que me quiero desarrollar es la gestión de proyectos tecnológicos. Me apasiona la idea de liderar procesos, coordinar equipos y asegurar que las soluciones de tecnología realmente generen valor en las organizaciones. Es un rol que combina lo técnico con lo estratégico, y eso me representa."
+
+"Hace poco tuve la oportunidad de entrevistar a un profesional de mi carrera, y me llevé un aprendizaje que no olvidaré: las habilidades blandas son tan importantes como las técnicas. Puedes dominar el mejor stack tecnológico, pero si no sabes comunicarte, negociar o liderar personas, tu impacto será muy limitado. Eso cambió mi perspectiva."
+
+"Estoy listo para dar ese primer paso al mundo profesional. Si buscas a alguien comprometido, analítico y con visión de crecimiento, estaré encantado de conversar. ¡Muchas gracias!"

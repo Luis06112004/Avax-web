@@ -45,23 +45,28 @@ const SECTIONS: NavSection[] = [
     title: "CONTENIDO",
     items: [
       { label: "Productos", href: "/admin/productos", icon: ShoppingBag },
-      { label: "Categorías", href: "/admin/categorias", icon: Tag, soon: true },
-      { label: "Banners", href: "/admin/banners", icon: Layers, soon: true },
-      { label: "Clientes", href: "/admin/clientes", icon: Users, soon: true },
+      { label: "Categorías", href: "/admin/categorias", icon: Tag},
+      { label: "Banners", href: "/admin/banners", icon: Layers},
+      { label: "Clientes", href: "/admin/clientes", icon: Users},
     ],
   },
   {
-    title: "SISTEMA",
-    items: [
-      { label: "Sincronización", href: "/admin/sync", icon: RefreshCw },
-      {
-        label: "Configuración",
-        href: "/admin/configuracion",
-        icon: Settings,
-        soon: true,
-      },
-    ],
-  },
+  title: "VENTAS",
+  items: [
+    { label: "Cupones", href: "/admin/cupones", icon: Tag },
+  ],
+},
+{
+  title: "SISTEMA",
+  items: [
+    { label: "Sincronización", href: "/admin/sync", icon: RefreshCw },
+    {
+      label: "Configuración",
+      href: "/admin/configuracion",
+      icon: Settings,
+    },
+  ],
+},
 ];
 
 function getInitials(name?: string | null): string {
