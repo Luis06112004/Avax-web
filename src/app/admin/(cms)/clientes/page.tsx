@@ -1,213 +1,127 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { 
-  Users, Search, Filter, Download, 
-  ShoppingBag, Mail, Phone, ArrowLeft,
-  Star, Clock, Heart, ExternalLink,
-  ChevronRight, Calendar, CreditCard
-} from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import { Topbar } from "../../_components/Topbar";
+import { 
+  Users, Search, Download, Star, 
+  Mail, Phone, ShoppingBag 
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 
-interface Pedido {
-  id: string;
-  fecha: string;
-  total: number;
-  estado: "Entregado" | "Procesando" | "Cancelado";
-}
+const API_BASE = "http://127.0.0.1:8000/api";
 
-interface Cliente {
+type Cliente = {
   id: number;
   nombre: string;
+  apellido: string;
   email: string;
-  telefono: string;
-  segmento: "VIP" | "Frecuente" | "Nuevo";
-  fechaRegistro: string;
-  pedidos: Pedido[];
-  wishlist: string[];
+  telefono?: string;
+  fecha_registro: string;
+  total_pedidos: number;
+  total_gastado: number;
+  activo: boolean;
+};
+
+type Pedido = {
+  id: number;
+  total: number;
+  estado: string;
+  fecha: string;
+};
+
+function getToken() {
+  return localStorage.getItem("avax_admin_token_v1") ?? "";
 }
 
-const CLIENTES_MOCK: Cliente[] = [
-  { 
-    id: 1, 
-    nombre: "Carla García", 
-    email: "carla.g@gmail.com", 
-    telefono: "987 654 321", 
-    segmento: "VIP",
-    fechaRegistro: "2024-01-15",
-    pedidos: [
-      { id: "ORD-7721", fecha: "2026-05-10", total: 450.00, estado: "Entregado" },
-      { id: "ORD-6540", fecha: "2026-03-22", total: 800.50, estado: "Entregado" }
-    ],
-    wishlist: ["Zapatillas Nike Air Max", "Gorra AVAX Black Edition"]
-  },
-  { 
-    id: 2, 
-    nombre: "Roberto Soto", 
-    email: "rsoto@outlook.com", 
-    telefono: "912 345 678", 
-    segmento: "Frecuente",
-    fechaRegistro: "2025-11-02",
-    pedidos: [
-      { id: "ORD-8812", fecha: "2026-04-28", total: 450.00, estado: "Procesando" }
-    ],
-    wishlist: ["Polera Oversize Crema"]
-  },
-  { 
-    id: 3, 
-    nombre: "Ana Loayza", 
-    email: "ana_l@yahoo.com", 
-    telefono: "955 111 222", 
-    segmento: "Nuevo",
-    fechaRegistro: "2026-02-10",
-    pedidos: [
-      { id: "ORD-1022", fecha: "2026-05-15", total: 89.90, estado: "Entregado" }
-    ],
-    wishlist: ["Calcetines Sport"]
-  }
-];
+function getInitials(nombre: string, apellido: string) {
+  return `${nombre[0] ?? ""}${apellido[0] ?? ""}`.toUpperCase();
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  pendiente: "bg-amber-500/15 text-amber-400",
+  procesando: "bg-blue-500/15 text-blue-400",
+  enviado: "bg-purple-500/15 text-purple-400",
+  entregado: "bg-emerald-500/15 text-emerald-400",
+  cancelado: "bg-red-500/15 text-red-400",
+};
 
 export default function ClientesPage() {
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
+  const [selected, setSelected] = useState<Cliente | null>(null);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [loadingPedidos, setLoadingPedidos] = useState(false);
   const [filtroSegmento, setFiltroSegmento] = useState("Todos");
 
-  // Lógica de filtrado y cálculos de Stats
-  const { filteredClientes, stats } = useMemo(() => {
-    const filtered = CLIENTES_MOCK.filter(c => {
-      const matchSearch = c.nombre.toLowerCase().includes(search.toLowerCase()) || 
-                          c.email.toLowerCase().includes(search.toLowerCase());
-      const matchSegmento = filtroSegmento === "Todos" || c.segmento === filtroSegmento;
-      return matchSearch && matchSegmento;
+  // Fetch de clientes desde la API de Laravel
+  useEffect(() => {
+    const q = search ? `?search=${search}` : "";
+    fetch(`${API_BASE}/admin/clientes${q}`, {
+      headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" },
+    })
+      .then((r) => r.json())
+      .then((d) => setClientes(Array.isArray(d) ? d : Array.isArray(d.clientes) ? d.clientes : []))
+      .catch(() => setClientes([]))
+      .finally(() => setLoading(false));
+  }, [search]);
+
+  // Cálculos dinámicos para los cuadros de Stats basados en la API
+  const stats = useMemo(() => {
+    const total = clientes.length;
+    // Consideramos VIP a quien haya gastado más de S/ 1000 de forma simulada en base al backend
+    const vips = clientes.filter(c => c.total_gastado > 1000).length;
+    const sumaTotal = clientes.reduce((acc, c) => acc + c.total_gastado, 0);
+    const ticketPromedio = total > 0 ? (sumaTotal / total).toFixed(2) : "0.00";
+
+    return { total, vips, ticketPromedio };
+  }, [clientes]);
+
+  // Filtrado local por segmento simulado para no perder tu funcionalidad
+  const filteredClientes = useMemo(() => {
+    return clientes.filter(c => {
+      if (filtroSegmento === "Todos") return true;
+      if (filtroSegmento === "VIP") return c.total_gastado > 1000;
+      if (filtroSegmento === "Frecuente") return c.total_pedidos > 3 && c.total_gastado <= 1000;
+      if (filtroSegmento === "Nuevo") return c.total_pedidos <= 3 && c.total_gastado <= 1000;
+      return true;
     });
+  }, [clientes, filtroSegmento]);
 
-    const totalInversion = CLIENTES_MOCK.reduce((acc, c) => 
-      acc + c.pedidos.reduce((sum, p) => sum + p.total, 0), 0
-    );
+  const handleVerPedidos = async (c: Cliente) => {
+    setSelected(c);
+    setLoadingPedidos(true);
+    setPedidos([]);
+    try {
+      const r = await fetch(`${API_BASE}/admin/clientes/${c.id}/pedidos`, {
+        headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" },
+      });
+      const d = await r.json();
+      setPedidos(d.pedidos ?? d);
+    } catch { setPedidos([]); }
+    finally { setLoadingPedidos(false); }
+  };
 
-    return {
-      filteredClientes: filtered,
-      stats: {
-        total: CLIENTES_MOCK.length,
-        vips: CLIENTES_MOCK.filter(c => c.segmento === "VIP").length,
-        ticketPromedio: (totalInversion / CLIENTES_MOCK.length).toFixed(2)
-      }
-    };
-  }, [search, filtroSegmento]);
-
-  if (selectedCliente) {
-    const totalGastado = selectedCliente.pedidos.reduce((acc, p) => acc + p.total, 0);
-
-    return (
-      <>
-        <Topbar 
-          title={`Detalle: ${selectedCliente.nombre}`}
-          subtitle="Historial de compras y preferencias del cliente."
-          breadcrumbs={[
-            { label: "Clientes", href: "/admin/clientes" }, 
-            { label: selectedCliente.nombre }
-          ]}
-        />
-        <div className="px-6 lg:px-8 py-8 flex flex-col gap-6">
-          <Button 
-            variant="outline" 
-            className="w-fit" 
-            onClick={() => setSelectedCliente(null)}
-            icon={<ArrowLeft size={16} />}
-          >
-            Volver al listado
-          </Button>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="flex flex-col gap-6">
-              <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] p-6 rounded-3xl text-center">
-                <div className="w-20 h-20 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4 text-3xl font-bold text-[var(--primary)]">
-                  {selectedCliente.nombre.charAt(0)}
-                </div>
-                <h3 className="text-xl font-bold text-[var(--admin-fg)]">{selectedCliente.nombre}</h3>
-                <p className="text-sm text-[var(--admin-fg-muted)] mb-4">{selectedCliente.email}</p>
-                <span className="px-4 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-bold uppercase tracking-widest">
-                  Cliente {selectedCliente.segmento}
-                </span>
-                <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-[var(--admin-border)] text-left">
-                  <div>
-                    <p className="text-[10px] text-[var(--admin-fg-subtle)] font-bold uppercase">Total Gastado</p>
-                    <p className="text-lg font-bold text-[var(--admin-fg)]">S/ {totalGastado.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-[var(--admin-fg-subtle)] font-bold uppercase">Registro</p>
-                    <p className="text-sm font-medium text-[var(--admin-fg)]">{selectedCliente.fechaRegistro}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] p-6 rounded-3xl">
-                <h4 className="font-bold text-[var(--admin-fg)] mb-4 flex items-center gap-2">
-                  <Heart size={16} className="text-pink-500" /> Wishlist
-                </h4>
-                <ul className="flex flex-col gap-3">
-                  {selectedCliente.wishlist.map((item, i) => (
-                    <li key={i} className="text-sm text-[var(--admin-fg-muted)] flex items-center justify-between group">
-                      {item}
-                      <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-3xl overflow-hidden">
-                <div className="p-6 border-b border-[var(--admin-border)]">
-                  <h4 className="font-bold text-[var(--admin-fg)]">Historial de Pedidos</h4>
-                </div>
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="bg-white/[0.02] text-[10px] font-bold text-[var(--admin-fg-subtle)] uppercase">
-                      <th className="px-6 py-4">ID Pedido</th>
-                      <th className="px-6 py-4">Fecha</th>
-                      <th className="px-6 py-4">Estado</th>
-                      <th className="px-6 py-4 text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--admin-border)] text-sm">
-                    {selectedCliente.pedidos.map((p) => (
-                      <tr key={p.id} className="hover:bg-white/[0.01]">
-                        <td className="px-6 py-4 font-mono text-[var(--primary)]">{p.id}</td>
-                        <td className="px-6 py-4 text-[var(--admin-fg-muted)]">{p.fecha}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            p.estado === 'Entregado' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
-                          }`}>
-                            {p.estado}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right font-bold">S/ {p.total.toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
+  const handleToggle = async (id: number, activo: boolean) => {
+    await fetch(`${API_BASE}/admin/clientes/${id}/estado`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ activo: !activo }),
+    });
+    setClientes((prev) => prev.map((c) => c.id === id ? { ...c, activo: !activo } : c));
+  };
 
   return (
     <>
-      <Topbar 
-        title="Gestión de Clientes" 
-        subtitle="Analiza el comportamiento y contacto de tus compradores."
-        breadcrumbs={[{ label: "AVAX CMS" }, { label: "Clientes" }]}
+      <Topbar
+        title="Clientes registrados"
+        subtitle="Consulta el historial, estadísticas y datos de tus clientes."
+        breadcrumbs={[{ label: "AVAX CMS", href: "/admin/dashboard" }, { label: "Clientes" }]}
       />
 
-      <div className="px-6 lg:px-8 py-8 flex flex-col gap-8">
+      <div className="px-6 lg:px-8 py-8 flex flex-col gap-6">
         
-        {/* Stats Cards */}
+        {/* REINCORPORADOS: Tus hermosos cuadros de estadísticas con datos reales de la API */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] p-5 rounded-2xl shadow-sm">
             <p className="text-[10px] font-bold text-[var(--admin-fg-subtle)] uppercase tracking-widest">Total Registrados</p>
@@ -215,32 +129,90 @@ export default function ClientesPage() {
           </div>
           <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] p-5 rounded-2xl shadow-sm border-l-4 border-l-amber-500">
             <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1">
-              <Star size={10} fill="currentColor" /> Clientes VIP
+              <Star size={10} fill="currentColor" /> Clientes VIP (S/ &gt;1K)
             </p>
             <h3 className="text-2xl font-bold text-[var(--admin-fg)] mt-1">{stats.vips}</h3>
           </div>
           <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] p-5 rounded-2xl shadow-sm">
-            <p className="text-[10px] font-bold text-[var(--admin-fg-subtle)] uppercase tracking-widest">Ticket Promedio</p>
+            <p className="text-[10px] font-bold text-[var(--admin-fg-subtle)] uppercase tracking-widest">Inversión Promedio</p>
             <h3 className="text-2xl font-bold text-[var(--admin-fg)] mt-1">S/ {stats.ticketPromedio}</h3>
           </div>
         </div>
 
-        {/* Filtros */}
+        {/* Modal de historial de pedidos */}
+        {selected && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--admin-border)]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[var(--primary)]/15 flex items-center justify-center text-[var(--primary)] font-semibold text-sm">
+                    {getInitials(selected.nombre, selected.apellido)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[var(--admin-fg)]">{selected.nombre} {selected.apellido}</p>
+                    <p className="text-xs text-[var(--admin-fg-muted)]">{selected.email}</p>
+                  </div>
+                </div>
+                <button onClick={() => setSelected(null)} className="text-[var(--admin-fg-muted)] hover:text-[var(--admin-fg)] text-sm font-bold bg-white/5 w-7 h-7 rounded-full flex items-center justify-center">✕</button>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  {[
+                    { label: "Total pedidos", value: selected.total_pedidos },
+                    { label: "Total gastado", value: `S/ ${selected.total_gastado.toFixed(2)}` },
+                    { label: "Miembro desde", value: new Date(selected.fecha_registro).toLocaleDateString("es-PE", { month: "short", year: "numeric" }) },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="bg-[var(--admin-bg)] rounded-xl p-4 text-center border border-[var(--admin-border)]">
+                      <p className="text-xs text-[var(--admin-fg-muted)] mb-1">{label}</p>
+                      <p className="text-base font-bold text-[var(--admin-fg)]">{value}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs font-semibold text-[var(--admin-fg-muted)] uppercase tracking-wider mb-3">Historial de pedidos</p>
+                {loadingPedidos ? (
+                  <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--primary)]" /></div>
+                ) : pedidos.length === 0 ? (
+                  <p className="text-center text-[var(--admin-fg-muted)] py-8 text-sm">Sin pedidos aún</p>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {pedidos.map((p) => (
+                      <div key={p.id} className="flex items-center justify-between py-3 border-b border-[var(--admin-border)] last:border-0">
+                        <div>
+                          <p className="text-sm font-medium text-[var(--admin-fg)]">Pedido #{p.id}</p>
+                          <p className="text-xs text-[var(--admin-fg-muted)]">{new Date(p.fecha).toLocaleDateString("es-PE")}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${STATUS_COLORS[p.estado] ?? "bg-white/5 text-[var(--admin-fg-muted)]"}`}>{p.estado}</span>
+                          <span className="text-sm font-bold text-[var(--admin-fg)]">S/ {p.total.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Herramientas de Filtro combinadas */}
         <div className="flex flex-col md:flex-row gap-4 justify-between bg-[var(--admin-card)] border border-[var(--admin-border)] p-4 rounded-2xl">
           <div className="flex gap-2 flex-1">
-            <Input 
-              placeholder="Buscar por nombre o correo..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              icon={<Search size={16}/>}
-              className="max-w-md"
-            />
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-fg-subtle)]" size={16} />
+              <input 
+                type="text" 
+                placeholder="Buscar por nombre o email..."
+                value={search} 
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl pl-9 pr-4 py-2 text-sm text-[var(--admin-fg)] focus:outline-none focus:border-[var(--primary)]" 
+              />
+            </div>
             <select 
               className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl px-4 text-sm text-[var(--admin-fg)] outline-none"
               value={filtroSegmento}
               onChange={(e) => setFiltroSegmento(e.target.value)}
             >
-              <option value="Todos">Todos</option>
+              <option value="Todos">Todos los segmentos</option>
               <option value="VIP">VIP</option>
               <option value="Frecuente">Frecuente</option>
               <option value="Nuevo">Nuevo</option>
@@ -251,41 +223,49 @@ export default function ClientesPage() {
 
         {/* Tabla */}
         <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-2xl overflow-hidden shadow-sm">
-          <table className="w-full text-left">
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[var(--admin-border)] bg-white/[0.02] text-[10px] font-bold text-[var(--admin-fg-subtle)] uppercase">
-                <th className="px-6 py-4">Cliente</th>
-                <th className="px-6 py-4">Pedidos</th>
-                <th className="px-6 py-4 text-right">Inversión Total</th>
-                <th className="px-6 py-4 text-right">Acción</th>
+              <tr className="border-b border-[var(--admin-border)] bg-white/[0.02]">
+                {["Cliente", "Teléfono", "Pedidos", "Total gastado", "Estado", "Acción"].map((h) => (
+                  <th key={h} className="px-6 py-4 text-[10px] font-bold tracking-[0.12em] text-[var(--admin-fg-subtle)] uppercase">{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--admin-border)]">
-              {filteredClientes.map((cliente) => (
-                <tr key={cliente.id} className="hover:bg-white/[0.01] transition-colors group">
+              {loading ? (
+                <tr><td colSpan={6} className="px-6 py-10 text-center"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--primary)] mx-auto" /></td></tr>
+              ) : filteredClientes.length === 0 ? (
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-[var(--admin-fg-muted)]">No se encontraron clientes</td></tr>
+              ) : filteredClientes.map((c) => (
+                <tr key={c.id} className="hover:bg-white/[0.01] transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">
-                        {cliente.nombre.charAt(0)}
+                      <div className="w-9 h-9 rounded-full bg-[var(--primary)]/15 flex items-center justify-center text-[var(--primary)] font-semibold text-xs flex-shrink-0">
+                        {getInitials(c.nombre, c.apellido)}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-[var(--admin-fg)]">{cliente.nombre}</p>
-                        <p className="text-[11px] text-[var(--admin-fg-muted)]">{cliente.email}</p>
+                        <p className="font-bold text-[var(--admin-fg)]">{c.nombre} {c.apellido}</p>
+                        <p className="text-xs text-[var(--admin-fg-muted)]">{c.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-[var(--admin-fg)]">
-                    {cliente.pedidos.length} pedidos
-                  </td>
-                  <td className="px-6 py-4 text-sm text-right font-bold text-[var(--admin-fg)]">
-                    S/ {cliente.pedidos.reduce((acc, p) => acc + p.total, 0).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-[var(--admin-fg-muted)]">{c.telefono || "—"}</td>
+                  <td className="px-6 py-4 font-medium text-[var(--admin-fg)]">{c.total_pedidos}</td>
+                  <td className="px-6 py-4 font-bold text-[var(--admin-fg)]">S/ {c.total_gastado.toFixed(2)}</td>
+                  <td className="px-6 py-4">
                     <button 
-                      onClick={() => setSelectedCliente(cliente)}
-                      className="p-2.5 bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white rounded-xl transition-all"
+                      onClick={() => handleToggle(c.id, c.activo)}
+                      className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium cursor-pointer transition-colors ${c.activo ? "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20" : "bg-white/5 text-[var(--admin-fg-subtle)] hover:bg-white/10"}`}
                     >
-                      <ChevronRight size={18} />
+                      {c.activo ? "Activo" : "Bloqueado"}
+                    </button>
+                  </td>
+                  <td className="px-6 py-4">
+                    <button 
+                      onClick={() => handleVerPedidos(c)}
+                      className="text-xs text-[var(--primary)] font-semibold px-3 py-1.5 rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 hover:bg-[var(--primary)] hover:text-white transition-all"
+                    >
+                      Ver pedidos
                     </button>
                   </td>
                 </tr>

@@ -36,6 +36,7 @@ type NavSection = {
   items: NavItem[];
 };
 
+// --- SECCIONES CORREGIDAS Y ACTIVAS ---
 const SECTIONS: NavSection[] = [
   {
     title: "MENU",
@@ -47,10 +48,16 @@ const SECTIONS: NavSection[] = [
     title: "CONTENIDO",
     items: [
       { label: "Productos", href: "/admin/productos", icon: ShoppingBag },
-      { label: "Usuarios", href: "/admin/usuarios", icon: Users }, // <-- AÑADIDO Y ACTIVO
-      { label: "Categorías", href: "/admin/categorias", icon: Tag, soon: true },
-      { label: "Banners", href: "/admin/banners", icon: Layers, soon: true },
-      { label: "Clientes", href: "/admin/clientes", icon: Users, soon: true },
+      { label: "Usuarios", href: "/admin/usuarios", icon: Users }, 
+      { label: "Categorías", href: "/admin/categorias", icon: Tag },
+      { label: "Banners", href: "/admin/banners", icon: Layers },
+      { label: "Clientes", href: "/admin/clientes", icon: Users },
+    ],
+  },
+  {
+    title: "VENTAS",
+    items: [
+      { label: "Cupones", href: "/admin/cupones", icon: Tag },
     ],
   },
   {
@@ -61,7 +68,6 @@ const SECTIONS: NavSection[] = [
         label: "Configuración",
         href: "/admin/configuracion",
         icon: Settings,
-        soon: true,
       },
     ],
   },
@@ -90,14 +96,12 @@ export function Sidebar() {
     if (signingOut) return;
     setSigningOut(true);
     const token = getAdminToken();
-    // Limpiamos localmente primero para que el guard del /admin/login no
-    // nos rebote de vuelta al dashboard.
     clearAdminSession();
     if (token) {
       try {
         await adminLogout(token);
       } catch {
-        // Si la revocación remota falla seguimos: la sesión local ya está limpia.
+        // Fallback silencioso si el token expiró
       }
     }
     router.replace("/admin/login");
