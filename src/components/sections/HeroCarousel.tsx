@@ -169,7 +169,8 @@ export function HeroCarousel({ slides }: Props) {
                   className="text-[var(--warning)]"
                   fill="currentColor"
                 />
-                {slide.rating.toFixed(1)} · {slide.reviews} reseñas
+                {slide.rating.toFixed(1)}
+                {slide.reviews > 0 ? ` · ${slide.reviews} reseñas` : ""}
               </span>
             </motion.div>
 
@@ -244,44 +245,47 @@ export function HeroCarousel({ slides }: Props) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, ease: EASE, delay: 0.6 }}
-              className="flex items-center gap-3 w-full max-w-[560px] justify-between"
+              className="flex items-center gap-3 w-full max-w-[560px]"
             >
-              <div className="flex items-center gap-3">
-                <ArrowButton direction="prev" onClick={goPrev} />
-                <div className="flex gap-2">
-                  {slides.map((s, i) => (
-                    <motion.button
-                      key={s.id}
-                      type="button"
-                      aria-label={`Ver ${s.nameTop} ${s.nameBottom}`}
-                      onClick={() => setIndex(i)}
-                      whileHover={{ scale: 1.08 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={cn(
-                        "w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-sm cursor-pointer overflow-hidden transition-colors",
-                        i === index
-                          ? "border-2 border-[var(--primary)] scale-105"
-                          : "border border-[var(--border)] hover:border-[var(--primary)]",
-                      )}
-                    >
-                      {s.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={s.image}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <SneakerPlaceholder
-                          size={32}
-                          className="text-[var(--avax-black)] opacity-70"
-                        />
-                      )}
-                    </motion.button>
-                  ))}
-                </div>
+              {/* Flecha anterior — fija, no se va con el scroll */}
+              <ArrowButton direction="prev" onClick={goPrev} className="shrink-0" />
+
+              {/* Thumbnails: scroll horizontal con snap cuando hay muchos.
+                  No se desbordan ni quedan cortados; se desliza la fila. */}
+              <div className="flex-1 min-w-0 flex gap-2 overflow-x-auto snap-x scrollbar-none [&::-webkit-scrollbar]:hidden py-1">
+                {slides.map((s, i) => (
+                  <motion.button
+                    key={s.id}
+                    type="button"
+                    aria-label={`Ver ${s.nameTop} ${s.nameBottom}`}
+                    onClick={() => setIndex(i)}
+                    whileTap={{ scale: 0.95 }}
+                    className={cn(
+                      "w-14 h-14 shrink-0 snap-start rounded-2xl bg-white flex items-center justify-center shadow-sm cursor-pointer overflow-hidden transition-colors",
+                      i === index
+                        ? "border-2 border-[var(--primary)]"
+                        : "border border-[var(--border)] hover:border-[var(--primary)]",
+                    )}
+                  >
+                    {s.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={s.image}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <SneakerPlaceholder
+                        size={32}
+                        className="text-[var(--avax-black)] opacity-70"
+                      />
+                    )}
+                  </motion.button>
+                ))}
               </div>
-              <ArrowButton direction="next" variant="dark" onClick={goNext} />
+
+              {/* Flecha siguiente — fija */}
+              <ArrowButton direction="next" variant="dark" onClick={goNext} className="shrink-0" />
             </motion.div>
           </div>
         </div>

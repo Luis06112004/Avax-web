@@ -46,12 +46,15 @@ const formatPrice = (n: number) =>
     minimumFractionDigits: 2,
   }).format(n);
 
+const PER_PAGE = 24;
+
 export default function ProductosPage() {
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<ProductStatus | "">("");
+  const [page, setPage] = useState(1);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<"create" | "edit">("create");
@@ -94,6 +97,18 @@ export default function ProductosPage() {
       return true;
     });
   }, [products, search, filterCategory, filterStatus]);
+
+  // Reinicia a la primera página cuando cambian filtros o búsqueda
+  useEffect(() => {
+    setPage(1);
+  }, [search, filterCategory, filterStatus]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = useMemo(
+    () => filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE),
+    [filtered, currentPage],
+  );
 
   const stats = useMemo(() => {
     return {
@@ -239,16 +254,26 @@ export default function ProductosPage() {
             }}
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filtered.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                onEdit={() => openEdit(p)}
-                onDelete={() => handleDelete(p)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {paginated.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onEdit={() => openEdit(p)}
+                  onDelete={() => handleDelete(p)}
+                />
+              ))}
+            </div>
+
+            <Pagination
+              page={currentPage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              perPage={PER_PAGE}
+              onChange={setPage}
+            />
+          </>
         )}
       </div>
 
@@ -297,13 +322,13 @@ function Stat({
       ? "bg-red-400"
       : "bg-[var(--primary)]";
   return (
-    <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-xl p-4 flex items-center gap-3">
-      <span className={cn("w-2 h-2 rounded-full", dot)} />
+    <div className="admin-card-premium p-4 flex items-center gap-3">
+      <span className={cn("w-2 h-2 rounded-full shrink-0", dot)} />
       <div className="flex flex-col">
         <span className="text-[10px] uppercase tracking-wider text-[var(--admin-fg-subtle)]">
           {label}
         </span>
-        <span className="text-xl font-bold text-[var(--admin-fg)]">{value}</span>
+        <span className="text-xl font-bold text-[var(--admin-fg)] tabular-nums">{value}</span>
       </div>
     </div>
   );
@@ -322,7 +347,7 @@ function ProductCard({
   const cover = product.images[0];
 
   return (
-    <article className="group relative bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-2xl overflow-hidden hover:border-[var(--primary)] transition-colors flex flex-col">
+    <article className="group admin-card-premium overflow-hidden flex flex-col">
       <div className="relative aspect-[4/3] bg-black/20 overflow-hidden">
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -339,11 +364,15 @@ function ProductCard({
 
         <span
           className={cn(
-            "absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 rounded-md border text-[10px] font-bold tracking-wider",
+            "absolute top-2 left-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[10px] font-bold tracking-wider backdrop-blur-sm",
             STATUS_COLOR[product.status],
           )}
         >
-          <StatusIcon size={10} />
+          {product.status === "active" ? (
+            <span className="admin-pulse-dot w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          ) : (
+            <StatusIcon size={10} />
+          )}
           {STATUS_LABEL[product.status].toUpperCase()}
         </span>
 
@@ -391,16 +420,16 @@ function ProductCard({
 
         <div className="flex items-baseline justify-between mt-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-bold text-[var(--admin-fg)]">
+            <span className="text-base font-bold text-[var(--admin-fg)] tabular-nums">
               {formatPrice(product.price)}
             </span>
             {product.oldPrice && (
-              <span className="text-[11px] line-through text-[var(--admin-fg-subtle)]">
+              <span className="text-[11px] line-through text-[var(--admin-fg-subtle)] tabular-nums">
                 {formatPrice(product.oldPrice)}
               </span>
             )}
           </div>
-          <span className="inline-flex items-center gap-1 text-[11px] text-[var(--admin-fg-muted)]">
+          <span className="inline-flex items-center gap-1 text-[11px] text-[var(--admin-fg-muted)] tabular-nums">
             <Package size={11} />
             {product.stock}
           </span>
@@ -410,20 +439,127 @@ function ProductCard({
   );
 }
 
+function Pagination({
+  page,
+  totalPages,
+  totalItems,
+  perPage,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  perPage: number;
+  onChange: (p: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+
+  const from = (page - 1) * perPage + 1;
+  const to = Math.min(page * perPage, totalItems);
+
+  // Genera la lista de páginas a mostrar con elipsis: 1 … 4 5 [6] 7 8 … 20
+  const pages: (number | "...")[] = [];
+  const push = (n: number | "...") => pages.push(n);
+  const window = 1; // páginas a cada lado de la actual
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= page - window && i <= page + window)
+    ) {
+      push(i);
+    } else if (pages[pages.length - 1] !== "...") {
+      push("...");
+    }
+  }
+
+  const goto = (p: number) => onChange(Math.min(Math.max(1, p), totalPages));
+
+  const btnBase =
+    "inline-flex items-center justify-center min-w-9 h-9 px-3 rounded-lg text-sm font-medium transition-colors border cursor-pointer tabular-nums";
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+      <p className="text-xs text-[var(--admin-fg-subtle)]">
+        Mostrando{" "}
+        <span className="font-semibold text-[var(--admin-fg-muted)]">
+          {from}–{to}
+        </span>{" "}
+        de{" "}
+        <span className="font-semibold text-[var(--admin-fg-muted)]">
+          {totalItems}
+        </span>{" "}
+        productos
+      </p>
+
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => goto(page - 1)}
+          disabled={page === 1}
+          className={cn(
+            btnBase,
+            "border-[var(--admin-border)] text-[var(--admin-fg-muted)] hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed",
+          )}
+        >
+          Anterior
+        </button>
+
+        {pages.map((p, i) =>
+          p === "..." ? (
+            <span
+              key={`gap-${i}`}
+              className="inline-flex items-center justify-center min-w-9 h-9 text-[var(--admin-fg-subtle)]"
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={p}
+              type="button"
+              onClick={() => goto(p)}
+              className={cn(
+                btnBase,
+                p === page
+                  ? "bg-[var(--primary)] border-[var(--primary)] text-white"
+                  : "border-[var(--admin-border)] text-[var(--admin-fg-muted)] hover:bg-white/5",
+              )}
+            >
+              {p}
+            </button>
+          ),
+        )}
+
+        <button
+          type="button"
+          onClick={() => goto(page + 1)}
+          disabled={page === totalPages}
+          className={cn(
+            btnBase,
+            "border-[var(--admin-border)] text-[var(--admin-fg-muted)] hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed",
+          )}
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SkeletonGrid() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-2xl overflow-hidden animate-pulse"
+          className="admin-card-premium overflow-hidden"
         >
-          <div className="aspect-[4/3] bg-white/5" />
+          <div className="admin-shimmer aspect-[4/3]" />
           <div className="p-4 flex flex-col gap-2">
-            <div className="h-3 w-1/3 bg-white/5 rounded" />
-            <div className="h-4 w-3/4 bg-white/10 rounded" />
-            <div className="h-3 w-1/2 bg-white/5 rounded" />
-            <div className="h-5 w-2/3 bg-white/10 rounded mt-1" />
+            <div className="admin-shimmer h-3 w-1/3 rounded" />
+            <div className="admin-shimmer h-4 w-3/4 rounded" />
+            <div className="admin-shimmer h-3 w-1/2 rounded" />
+            <div className="admin-shimmer h-5 w-2/3 rounded mt-1" />
           </div>
         </div>
       ))}

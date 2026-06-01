@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { X, Upload, Trash2, Save, Image as ImageIcon } from "lucide-react";
 import {
   type AdminProduct,
@@ -131,17 +132,27 @@ export function ProductDrawer({
     onSubmit(data);
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true">
-      <div
-        className="absolute inset-0 bg-black/60"
-        onClick={saving ? undefined : onClose}
-      />
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true">
+          <motion.div
+            className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+            onClick={saving ? undefined : onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
 
-      <aside className="relative ml-auto w-full sm:w-[560px] h-full bg-[var(--admin-bg)] border-l border-[var(--admin-border)] flex flex-col">
-        <header className="flex items-center justify-between px-6 py-5 border-b border-[var(--admin-border)] shrink-0">
+          <motion.aside
+            className="admin-scroll relative ml-auto w-full sm:w-[560px] h-full bg-[var(--admin-bg)] border-l border-[var(--admin-border)] flex flex-col shadow-2xl shadow-black/50"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", stiffness: 380, damping: 38 }}
+          >
+            <header className="flex items-center justify-between px-6 py-5 border-b border-[var(--admin-border)] shrink-0">
           <div>
             <h2 className="text-lg font-bold text-[var(--admin-fg)] tracking-tight">
               {mode === "create" ? "Nuevo producto" : "Editar producto"}
@@ -396,9 +407,11 @@ export function ProductDrawer({
               ? "Crear producto"
               : "Guardar cambios"}
           </button>
-        </footer>
-      </aside>
-    </div>
+            </footer>
+          </motion.aside>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
 

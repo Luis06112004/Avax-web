@@ -92,14 +92,16 @@ export type OrderApiError = {
 
 export async function createOrder(
   input: CreateOrderInput,
-  token: string,
+  token?: string | null,
 ): Promise<Order> {
   const res = await fetch(`${API_BASE}/shop/pedidos`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
-      Authorization: `Bearer ${token}`,
+      // El token es OPCIONAL: si hay sesión, el pedido se asocia al usuario;
+      // si no, se crea como invitado.
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(input),
     cache: "no-store",

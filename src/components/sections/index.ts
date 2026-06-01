@@ -6,3 +6,6 @@ export { NewReleases } from "./NewReleases";
 export { FeaturedProducts } from "./FeaturedProducts";
 export { Testimonials } from "./Testimonials";
 export { InstagramFeed } from "./InstagramFeed";
+export { Benefits } from "./Benefits";
+export { CategoriesGrid } from "./CategoriesGrid";
+export { ExploraSeleccion } from "./ExploraSeleccion";

@@ -62,16 +62,6 @@ export default function PagoPage() {
     else if (!address) router.replace("/checkout/datos-envio");
   }, [hydrated, items.length, address, router, success]);
 
-  useEffect(() => {
-    if (!authHydrated) return;
-    if (success) return;
-    if (!isAuthenticated) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent("/checkout/pago")}`,
-      );
-    }
-  }, [authHydrated, isAuthenticated, router, success]);
-
   if (success) {
     return (
       <OrderSuccessModal
@@ -79,11 +69,13 @@ export default function PagoPage() {
         orderNumber={success.numero}
         total={success.total}
         email={success.email}
+        isGuest={!isAuthenticated}
       />
     );
   }
 
-  if (!address || !authHydrated || !isAuthenticated) return null;
+  // Modo invitado permitido: solo esperamos hidratación + tener dirección.
+  if (!address || !authHydrated) return null;
 
   const validate = (): boolean => {
     const next: Record<string, string> = {};
@@ -105,10 +97,6 @@ export default function PagoPage() {
 
   const onPay = async () => {
     if (!validate()) return;
-    if (!token) {
-      router.replace(`/login?redirect=${encodeURIComponent("/checkout/pago")}`);
-      return;
-    }
     setServerError(null);
     setSubmitting(true);
 
@@ -182,12 +170,6 @@ export default function PagoPage() {
       });
     } catch (err) {
       const e = err as { message?: string; status?: number };
-      if (e?.status === 401) {
-        router.replace(
-          `/login?redirect=${encodeURIComponent("/checkout/pago")}`,
-        );
-        return;
-      }
       setServerError(
         e?.message ?? "No se pudo registrar el pedido. Inténtalo de nuevo.",
       );

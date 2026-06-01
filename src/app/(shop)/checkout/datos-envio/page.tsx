@@ -19,7 +19,7 @@ const DEPARTAMENTOS = [
 export default function DatosEnvioPage() {
   const router = useRouter();
   const { items, address, setAddress } = useCart();
-  const { isAuthenticated, hydrated: authHydrated } = useAuth();
+  const { hydrated: authHydrated } = useAuth();
 
   const [form, setForm] = useState<ShippingAddress>({
     firstName: "",
@@ -44,24 +44,15 @@ export default function DatosEnvioPage() {
     setHydrated(true);
   }, [address]);
 
-  // Auth guard: send to login if not authenticated
-  useEffect(() => {
-    if (!authHydrated) return;
-    if (!isAuthenticated) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent("/checkout/datos-envio")}`,
-      );
-    }
-  }, [authHydrated, isAuthenticated, router]);
-
+  // Modo invitado permitido: NO se exige login para comprar.
   useEffect(() => {
     if (hydrated && items.length === 0) router.replace("/carrito");
   }, [hydrated, items.length, router]);
 
-  if (!authHydrated || !isAuthenticated) {
+  if (!authHydrated) {
     return (
       <div className="container-page py-10 text-sm text-[var(--foreground-muted)]">
-        Verificando sesión…
+        Cargando…
       </div>
     );
   }

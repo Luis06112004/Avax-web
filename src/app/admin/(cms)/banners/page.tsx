@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Topbar } from "../../_components/Topbar";
 import { Layers } from "lucide-react";
 
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8010/api";
 
 type Banner = {
   id: number;

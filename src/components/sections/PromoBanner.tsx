@@ -3,7 +3,21 @@ import { Timer, ArrowRight, TimerReset } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { MobileScroller } from "@/components/layout/MobileScroller";
 
-export function PromoBanner() {
+export function PromoBanner({
+  titulo,
+  subtitulo,
+  etiqueta,
+  botonTexto,
+  botonLink,
+}: {
+  titulo?: string;
+  subtitulo?: string;
+  etiqueta?: string;
+  botonTexto?: string;
+  botonLink?: string;
+} = {}) {
+  const href = botonLink ?? "/ofertas";
+
   return (
     <section className="container-page py-10">
       <MobileScroller desktopGrid="lg:grid-cols-2" itemWidth="wide">
@@ -17,25 +31,33 @@ export function PromoBanner() {
           <div className="relative flex flex-col gap-3 max-w-md">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E63946] text-white text-[11px] font-extrabold tracking-[0.15em] uppercase w-fit">
               <Timer size={12} />
-              Oferta limitada
+              {etiqueta ?? "Oferta limitada"}
             </span>
-            <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white/60 leading-none mt-2">
-              HASTA
-            </span>
-            <h3 className="text-6xl sm:text-7xl md:text-8xl font-black leading-none tracking-tight">
-              50% OFF
-            </h3>
+            {titulo ? (
+              <h3 className="text-5xl sm:text-6xl md:text-7xl font-black leading-[1.05] tracking-tight mt-2 whitespace-pre-line">
+                {titulo}
+              </h3>
+            ) : (
+              <>
+                <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white/60 leading-none mt-2">
+                  HASTA
+                </span>
+                <h3 className="text-6xl sm:text-7xl md:text-8xl font-black leading-none tracking-tight">
+                  50% OFF
+                </h3>
+              </>
+            )}
             <p className="text-sm text-white/70 mt-2">
-              En todos los modelos seleccionados
+              {subtitulo ?? "En todos los modelos seleccionados"}
             </p>
             <div className="flex items-center gap-3 mt-4 flex-wrap">
-              <Link href="/ofertas">
+              <Link href={href}>
                 <Button
                   variant="white"
                   icon={<ArrowRight size={16} />}
                   iconPosition="right"
                 >
-                  Ver ofertas
+                  {botonTexto ?? "Ver ofertas"}
                 </Button>
               </Link>
               <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-xs font-bold tracking-[0.15em]">
@@ -48,7 +70,7 @@ export function PromoBanner() {
 
         {/* Card lifestyle */}
         <Link
-          href="/ofertas"
+          href={href}
           className="relative overflow-hidden rounded-[32px] min-h-[360px] sm:min-h-[380px] block group cursor-pointer"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}

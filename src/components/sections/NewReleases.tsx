@@ -2,8 +2,38 @@ import Link from "next/link";
 import { Calendar, ArrowRight, ArrowUpRight } from "lucide-react";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { MobileScroller } from "@/components/layout/MobileScroller";
+import { ProductCarousel } from "@/components/layout/ProductCarousel";
+import { ProductCard } from "@/components/product/ProductCard";
+import type { ShopProduct } from "./home-types";
+import type { Product } from "@/types";
 
-const RELEASES = [
+type ReleaseCard = {
+  brand: string;
+  name: string;
+  subtitle: string;
+  price: number;
+  image: string;
+  href: string;
+  theme: "dark" | "light";
+};
+
+function toProduct(p: ShopProduct): Product {
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    brand: p.brand,
+    price: p.price,
+    oldPrice: p.oldPrice ?? undefined,
+    discountLabel: p.discountLabel ?? undefined,
+    image: p.image,
+    badge: p.badge ?? undefined,
+    rating: p.rating,
+    stock: p.stock,
+  };
+}
+
+const RELEASES: ReleaseCard[] = [
   {
     brand: "AIR JORDAN",
     name: "Air Jordan 3 Retro",
@@ -24,15 +54,26 @@ const RELEASES = [
   },
 ];
 
-export function NewReleases() {
+export function NewReleases({
+  titulo,
+  subtitulo,
+  productos,
+}: {
+  titulo?: string;
+  subtitulo?: string;
+  productos?: ShopProduct[];
+} = {}) {
+  const conProductos = !!(productos && productos.length > 0);
+  const releases = RELEASES;
+
   return (
     <section className="container-page py-14">
       <SectionHeader
         tag={{
-          label: "Drops 2026",
+          label: subtitulo ?? "Drops 2026",
           icon: <Calendar size={14} />,
         }}
-        title="Nuevos Lanzamientos"
+        title={titulo ?? "Nuevos Lanzamientos"}
         end={
           <Link
             href="/tienda"
@@ -45,12 +86,19 @@ export function NewReleases() {
         className="mb-9"
       />
 
+      {conProductos ? (
+        <ProductCarousel>
+          {productos!.map((p) => (
+            <ProductCard key={p.id} product={toProduct(p)} size="sm" />
+          ))}
+        </ProductCarousel>
+      ) : (
       <MobileScroller desktopGrid="lg:grid-cols-2" itemWidth="wide">
-        {RELEASES.map((release) => {
+        {releases.map((release) => {
           const isDark = release.theme === "dark";
           return (
             <Link
-              key={release.name}
+              key={release.href}
               href={release.href}
               className="group relative overflow-hidden rounded-[28px] bg-[var(--avax-black)] min-h-[420px] flex cursor-pointer"
             >
@@ -112,6 +160,7 @@ export function NewReleases() {
           );
         })}
       </MobileScroller>
+      )}
     </section>
   );
 }

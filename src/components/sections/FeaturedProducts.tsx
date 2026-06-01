@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Award } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { SectionHeader } from "@/components/layout/SectionHeader";
-import { MobileScroller } from "@/components/layout/MobileScroller";
+import { ProductCarousel } from "@/components/layout/ProductCarousel";
 import {
   listFeatured,
   listProducts,
@@ -37,12 +37,30 @@ function toProduct(p: ShopProduct): Product {
   };
 }
 
-export function FeaturedProducts() {
+type FeaturedProps = {
+  titulo?: string;
+  subtitulo?: string;
+  productos?: ShopProduct[];
+};
+
+export function FeaturedProducts({ titulo, subtitulo, productos }: FeaturedProps = {}) {
+  // Curaduría manual del admin: si hay productos preconfigurados, mandan ellos
+  // (sin recorte y sin tabs Hombre/Mujer). Los tabs solo aplican en modo auto.
+  const hasPreset = !!productos && productos.length > 0;
+
   const [tab, setTab] = useState<TabId>("todos");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(
+    hasPreset ? productos!.map(toProduct) : [],
+  );
+  const [loading, setLoading] = useState(!hasPreset);
 
   useEffect(() => {
+    if (hasPreset) {
+      // Respeta TODOS los productos elegidos en el admin (sin slice).
+      setProducts(productos!.map(toProduct));
+      setLoading(false);
+      return;
+    }
     let alive = true;
     setLoading(true);
     (async () => {
@@ -53,6 +71,7 @@ export function FeaturedProducts() {
             : await listProducts({ genero: tab, per_page: 8 });
         if (!alive) return;
         const items = ("pagination" in res ? res.data : res.data) as ShopProduct[];
+        // En modo automático mantenemos un tope razonable.
         setProducts(items.slice(0, 8).map(toProduct));
       } catch (err) {
         console.error("FeaturedProducts fetch failed", err);
@@ -64,58 +83,60 @@ export function FeaturedProducts() {
     return () => {
       alive = false;
     };
-  }, [tab]);
+  }, [tab, hasPreset, productos]);
 
   return (
     <section className="container-page py-14">
       <SectionHeader
         tag={{
-          label: "Selección del equipo",
+          label: subtitulo ?? "Selección del equipo",
           icon: <Award size={14} />,
           className: "bg-[#FEF3C7] text-[#92400E]",
         }}
-        title="Productos Destacados"
+        title={titulo ?? "Productos Destacados"}
         end={
-          <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[var(--surface-2)]">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTab(t.id)}
-                className={cn(
-                  "px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer",
-                  tab === t.id
-                    ? "bg-[var(--avax-black)] text-white"
-                    : "text-[var(--foreground-muted)] hover:text-[var(--avax-black)]",
-                )}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+          hasPreset ? undefined : (
+            <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[var(--surface-2)]">
+              {TABS.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTab(t.id)}
+                  className={cn(
+                    "px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer",
+                    tab === t.id
+                      ? "bg-[var(--avax-black)] text-white"
+                      : "text-[var(--foreground-muted)] hover:text-[var(--avax-black)]",
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )
         }
         className="mb-9"
       />
 
       {loading ? (
-        <MobileScroller desktopGrid="lg:grid-cols-4" itemWidth="card">
+        <ProductCarousel showDots={false}>
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
               className="aspect-[3/4] rounded-2xl bg-[var(--surface-2)] animate-pulse"
             />
           ))}
-        </MobileScroller>
+        </ProductCarousel>
       ) : products.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[var(--border)] py-16 text-center text-sm text-[var(--foreground-muted)]">
           No hay productos en esta categoría.
         </div>
       ) : (
-        <MobileScroller desktopGrid="lg:grid-cols-4" itemWidth="card">
+        <ProductCarousel>
           {products.map((product) => (
             <ProductCard key={product.id} product={product} size="sm" />
           ))}
-        </MobileScroller>
+        </ProductCarousel>
       )}
     </section>
   );

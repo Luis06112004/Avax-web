@@ -11,29 +11,37 @@ import {
   AlertCircle,
   ClipboardList,
   TrendingUp,
+  Users,
+  Tag,
+  Settings,
+  Trophy,
 } from "lucide-react";
 import { Topbar } from "../../_components/Topbar";
 import { getAdminToken, getAdminUser } from "@/lib/admin-auth";
 
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8010/api";
 
-type Pedido = {
-  numero: string;
-  estado: string;
+type PedidoReciente = {
+  id: number;
+  cliente_nombre: string;
+  cliente_email: string;
   total: number;
-  created_at: string;
+  estado: string;
+  fecha: string;
 };
 
-type Producto = {
-  id: number | string;
-  nombre?: string;
-  name?: string;
-  slug: string;
-  precio?: number;
-  price?: number;
-  stock?: number;
-  activo?: boolean;
-  active?: boolean;
+type ProductoTop = {
+  nombre: string;
+  vendidos: number;
+};
+
+type Stats = {
+  ventas_hoy: number;
+  pedidos_total: number;
+  productos_total: number;
+  clientes_total: number;
+  pedidos_recientes: PedidoReciente[];
+  productos_top: ProductoTop[];
 };
 
 async function fetchWithAuth<T>(path: string, token: string): Promise<T> {
@@ -54,13 +62,13 @@ const ESTADO_COLOR: Record<string, string> = {
 
 function StatSkeleton() {
   return (
-    <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-2xl p-5">
+    <div className="admin-card-premium p-5">
       <div className="flex items-start justify-between mb-3">
-        <div className="h-3 w-28 rounded bg-white/5 animate-pulse" />
-        <div className="w-8 h-8 rounded-lg bg-white/5 animate-pulse" />
+        <div className="admin-shimmer h-3 w-28 rounded" />
+        <div className="admin-shimmer w-8 h-8 rounded-lg" />
       </div>
-      <div className="h-8 w-16 rounded bg-white/5 animate-pulse mb-2" />
-      <div className="h-3 w-36 rounded bg-white/5 animate-pulse" />
+      <div className="admin-shimmer h-8 w-16 rounded mb-2" />
+      <div className="admin-shimmer h-3 w-36 rounded" />
     </div>
   );
 }
@@ -69,8 +77,7 @@ export default function DashboardPage() {
   const token = getAdminToken() ?? "";
   const user = getAdminUser();
 
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [productos, setProductos] = useState<Producto[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -79,32 +86,8 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const [pedidosRes, productosRes] = await Promise.allSettled([
-        fetchWithAuth<{ data: Pedido[] } | Pedido[]>("/shop/pedidos", token),
-        fetchWithAuth<{ data: Producto[] } | Producto[]>("/shop/productos", token),
-      ]);
-
-      if (pedidosRes.status === "fulfilled") {
-        const list = Array.isArray(pedidosRes.value)
-          ? pedidosRes.value
-          : (pedidosRes.value as { data: Pedido[] }).data ?? [];
-        setPedidos(list);
-      }
-
-      if (productosRes.status === "fulfilled") {
-        const list = Array.isArray(productosRes.value)
-          ? productosRes.value
-          : (productosRes.value as { data: Producto[] }).data ?? [];
-        setProductos(list);
-      }
-
-      if (
-        pedidosRes.status === "rejected" &&
-        productosRes.status === "rejected"
-      ) {
-        throw new Error("No se pudo conectar con la API");
-      }
-
+      const data = await fetchWithAuth<Stats>("/admin/stats", token);
+      setStats(data);
       setLastUpdate(new Date());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error al cargar datos");
@@ -115,54 +98,69 @@ export default function DashboardPage() {
 
   useEffect(() => { void loadData(); }, []);
 
-  const totalProductos = productos.length;
-  const productosActivos = productos.filter((p) => p.activo ?? p.active ?? true).length;
-  const totalPedidos = pedidos.length;
-  const pedidosPendientes = pedidos.filter((p) => p.estado === "pendiente").length;
-  const ingresoTotal = pedidos.reduce((acc, p) => acc + (p.total ?? 0), 0);
+  // Datos reales que vienen del endpoint /admin/stats
+  const totalProductos = stats?.productos_total ?? 0;
+  const totalPedidos = stats?.pedidos_total ?? 0;
+  const totalClientes = stats?.clientes_total ?? 0;
+  const ventasHoy = stats?.ventas_hoy ?? 0;
+  const pedidosRecientes = stats?.pedidos_recientes ?? [];
+  const productosTop = stats?.productos_top ?? [];
 
   const firstName = user?.name?.split(" ")[0] ?? "Admin";
 
+  const fmtSoles = (n: number) =>
+    `S/ ${n.toLocaleString("es-PE", { minimumFractionDigits: 2 })}`;
+
   const STATS = [
     {
-      label: "Productos publicados",
-      value: loading ? null : String(productosActivos),
-      hint: loading ? "Cargando..." : `${totalProductos} en total`,
+      label: "Productos en catálogo",
+      value: loading ? null : totalProductos.toLocaleString("es-PE"),
+      hint: loading ? "Cargando..." : "Sincronizados desde e-commerce",
       icon: ShoppingBag,
+      accent: "var(--primary)",
     },
     {
       label: "Pedidos totales",
-      value: loading ? null : String(totalPedidos),
-      hint: loading ? "Cargando..." : `${pedidosPendientes} pendientes`,
+      value: loading ? null : totalPedidos.toLocaleString("es-PE"),
+      hint: loading ? "Cargando..." : totalPedidos === 0 ? "Aún sin pedidos" : "Registrados en la tienda",
       icon: ClipboardList,
+      accent: "#f59e0b",
     },
     {
-      label: "Ingresos",
-      value: loading
-        ? null
-        : `S/ ${ingresoTotal.toLocaleString("es-PE", { minimumFractionDigits: 2 })}`,
-      hint: "Suma de todos los pedidos",
+      label: "Ventas de hoy",
+      value: loading ? null : fmtSoles(ventasHoy),
+      hint: "Pedidos confirmados hoy",
       icon: TrendingUp,
+      accent: "#22c55e",
     },
     {
-      label: "Estado del sitio",
-      value: loading ? null : error ? "Error API" : "Operativo",
-      hint: loading
-        ? "Verificando..."
-        : error
-        ? error
-        : lastUpdate
-        ? `Actualizado a las ${lastUpdate.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}`
-        : "Sin incidencias",
-      icon: Activity,
+      label: "Clientes registrados",
+      value: loading ? null : totalClientes.toLocaleString("es-PE"),
+      hint: loading ? "Cargando..." : "Cuentas en la tienda",
+      icon: Users,
+      accent: "#8b5cf6",
     },
+  ];
+
+  // Accesos directos a los módulos que YA existen y funcionan
+  const MODULOS = [
+    { label: "Productos", href: "/admin/productos", icon: ShoppingBag, desc: "Catálogo del e-commerce" },
+    { label: "Banners", href: "/admin/banners", icon: Layers, desc: "Promociones de la home" },
+    { label: "Clientes", href: "/admin/clientes", icon: Users, desc: "Cuentas registradas" },
+    { label: "Cupones", href: "/admin/cupones", icon: Tag, desc: "Códigos de descuento" },
+    { label: "Configuración", href: "/admin/configuracion", icon: Settings, desc: "Datos de la tienda" },
+    { label: "Sincronización", href: "/admin/sync", icon: RefreshCw, desc: "Importar catálogo" },
   ];
 
   return (
     <>
       <Topbar
         title={`Bienvenido, ${firstName}`}
-        subtitle="Resumen del contenido visual del e-commerce."
+        subtitle={
+          lastUpdate
+            ? `Datos actualizados a las ${lastUpdate.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}`
+            : "Resumen en tiempo real del e-commerce."
+        }
         breadcrumbs={[{ label: "AVAX CMS" }, { label: "General" }]}
         actions={
           <button
@@ -194,82 +192,140 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />)
-            : STATS.map(({ label, value, hint, icon: Icon }) => (
+            : STATS.map(({ label, value, hint, icon: Icon, accent }) => (
                 <div
                   key={label}
-                  className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-2xl p-5 hover:border-[var(--primary)] transition-colors"
+                  className="admin-card-premium admin-kpi-accent p-5 pl-6 overflow-hidden"
+                  style={{ ["--kpi-accent" as string]: accent }}
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  {/* Icono de fondo grande y semitransparente */}
+                  <Icon
+                    size={88}
+                    className="absolute -right-3 -bottom-3 opacity-[0.04] pointer-events-none"
+                    style={{ color: accent }}
+                  />
+                  <div className="relative flex items-start justify-between mb-3">
                     <span className="text-xs text-[var(--admin-fg-muted)]">{label}</span>
-                    <span className="w-8 h-8 rounded-lg bg-[var(--primary)]/15 text-[var(--primary)] flex items-center justify-center">
+                    <span
+                      className="w-8 h-8 rounded-lg flex items-center justify-center"
+                      style={{
+                        backgroundColor: `color-mix(in srgb, ${accent} 16%, transparent)`,
+                        color: accent,
+                      }}
+                    >
                       <Icon size={14} />
                     </span>
                   </div>
-                  <p className="text-2xl font-bold text-[var(--admin-fg)] mb-1 tracking-tight">
+                  <p className="relative text-2xl font-bold text-[var(--admin-fg)] mb-1 tracking-tight tabular-nums">
                     {value ?? "—"}
                   </p>
-                  <p className="text-[11px] text-[var(--admin-fg-subtle)]">{hint}</p>
+                  <p className="relative text-[11px] text-[var(--admin-fg-subtle)]">{hint}</p>
                 </div>
               ))}
         </div>
 
-        {/* Últimos pedidos */}
-        {!loading && pedidos.length > 0 && (
-          <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--admin-border)]">
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--admin-fg)]">Últimos pedidos</h3>
-                <p className="text-[11px] text-[var(--admin-fg-subtle)] mt-0.5">
-                  Los {Math.min(pedidos.length, 5)} más recientes
-                </p>
+        {/* Pedidos recientes + Productos más vendidos */}
+        {!loading && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Pedidos recientes (2/3) */}
+            <div className="lg:col-span-2 admin-card-premium overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--admin-border)]">
+                <div>
+                  <h3 className="text-sm font-semibold text-[var(--admin-fg)]">Pedidos recientes</h3>
+                  <p className="text-[11px] text-[var(--admin-fg-subtle)] mt-0.5">
+                    {pedidosRecientes.length > 0
+                      ? `Los ${pedidosRecientes.length} más recientes`
+                      : "Aparecerán aquí cuando la tienda registre ventas"}
+                  </p>
+                </div>
               </div>
-              <Link
-                href="/admin/pedidos"
-                className="text-xs text-[var(--primary)] hover:underline font-medium flex items-center gap-1"
-              >
-                Ver todos <ArrowRight size={12} />
-              </Link>
+
+              {pedidosRecientes.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-center py-12 px-5">
+                  <span className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-[var(--admin-fg-subtle)] mb-3">
+                    <ClipboardList size={22} />
+                  </span>
+                  <p className="text-sm text-[var(--admin-fg-muted)]">Todavía no hay pedidos</p>
+                  <p className="text-xs text-[var(--admin-fg-subtle)] mt-1 max-w-xs">
+                    Cuando un cliente complete una compra en la tienda, verás el detalle acá.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[var(--admin-border)]">
+                        <th className="text-left px-5 py-3 text-[10px] font-bold tracking-[0.12em] text-[var(--admin-fg-subtle)]">CLIENTE</th>
+                        <th className="text-left px-5 py-3 text-[10px] font-bold tracking-[0.12em] text-[var(--admin-fg-subtle)]">ESTADO</th>
+                        <th className="text-left px-5 py-3 text-[10px] font-bold tracking-[0.12em] text-[var(--admin-fg-subtle)] hidden md:table-cell">FECHA</th>
+                        <th className="text-right px-5 py-3 text-[10px] font-bold tracking-[0.12em] text-[var(--admin-fg-subtle)]">TOTAL</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pedidosRecientes.map((p) => (
+                        <tr
+                          key={p.id}
+                          className="border-b border-[var(--admin-border)] last:border-0 hover:bg-white/[0.02] transition-colors"
+                        >
+                          <td className="px-5 py-3">
+                            <p className="font-semibold text-[var(--admin-fg)]">{p.cliente_nombre}</p>
+                            <p className="text-[11px] text-[var(--admin-fg-subtle)]">{p.cliente_email}</p>
+                          </td>
+                          <td className="px-5 py-3">
+                            <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium capitalize ${ESTADO_COLOR[p.estado] ?? "bg-white/5 text-[var(--admin-fg-muted)]"}`}>
+                              {p.estado}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-[var(--admin-fg-muted)] text-xs hidden md:table-cell tabular-nums">
+                            {p.fecha
+                              ? new Date(p.fecha).toLocaleDateString("es-PE", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })
+                              : "—"}
+                          </td>
+                          <td className="px-5 py-3 text-right font-semibold text-[var(--admin-fg)] tabular-nums">
+                            {fmtSoles(p.total ?? 0)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--admin-border)]">
-                    <th className="text-left px-5 py-3 text-[10px] font-bold tracking-[0.12em] text-[var(--admin-fg-subtle)]">PEDIDO</th>
-                    <th className="text-left px-5 py-3 text-[10px] font-bold tracking-[0.12em] text-[var(--admin-fg-subtle)]">ESTADO</th>
-                    <th className="text-left px-5 py-3 text-[10px] font-bold tracking-[0.12em] text-[var(--admin-fg-subtle)] hidden md:table-cell">FECHA</th>
-                    <th className="text-right px-5 py-3 text-[10px] font-bold tracking-[0.12em] text-[var(--admin-fg-subtle)]">TOTAL</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pedidos.slice(0, 5).map((p) => (
-                    <tr
-                      key={p.numero}
-                      className="border-b border-[var(--admin-border)] last:border-0 hover:bg-white/[0.02] transition-colors"
-                    >
-                      <td className="px-5 py-3 font-semibold text-[var(--admin-fg)]">
-                        #{p.numero}
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium capitalize ${ESTADO_COLOR[p.estado] ?? "bg-white/5 text-[var(--admin-fg-muted)]"}`}>
-                          {p.estado}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-[var(--admin-fg-muted)] text-xs hidden md:table-cell">
-                        {p.created_at
-                          ? new Date(p.created_at).toLocaleDateString("es-PE", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : "—"}
-                      </td>
-                      <td className="px-5 py-3 text-right font-semibold text-[var(--admin-fg)]">
-                        S/ {(p.total ?? 0).toFixed(2)}
-                      </td>
-                    </tr>
+
+            {/* Productos más vendidos (1/3) */}
+            <div className="admin-card-premium overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-4 border-b border-[var(--admin-border)]">
+                <Trophy size={15} className="text-amber-400" />
+                <h3 className="text-sm font-semibold text-[var(--admin-fg)]">Más vendidos</h3>
+              </div>
+              {productosTop.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-center py-12 px-5">
+                  <span className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-[var(--admin-fg-subtle)] mb-3">
+                    <Trophy size={20} />
+                  </span>
+                  <p className="text-xs text-[var(--admin-fg-subtle)] max-w-[12rem]">
+                    El ranking aparecerá cuando se registren ventas.
+                  </p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-[var(--admin-border)]">
+                  {productosTop.map((p, i) => (
+                    <li key={p.nombre} className="flex items-center gap-3 px-5 py-3">
+                      <span className="w-6 h-6 shrink-0 rounded-md bg-white/5 flex items-center justify-center text-[11px] font-bold text-[var(--admin-fg-muted)] tabular-nums">
+                        {i + 1}
+                      </span>
+                      <p className="flex-1 text-xs text-[var(--admin-fg)] line-clamp-2">{p.nombre}</p>
+                      <span className="text-xs font-bold text-[var(--primary)] tabular-nums">
+                        {p.vendidos}
+                      </span>
+                    </li>
                   ))}
-                </tbody>
-              </table>
+                </ul>
+              )}
             </div>
           </div>
         )}
@@ -300,30 +356,33 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Próximamente */}
-        <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-2xl p-6">
-          <h3 className="text-sm font-semibold text-[var(--admin-fg)] mb-1">Próximamente</h3>
-          <p className="text-xs text-[var(--admin-fg-muted)] mb-5">
-            Estos módulos se habilitarán cuando el backend Laravel esté disponible.
+        {/* Accesos directos a los módulos */}
+        <div>
+          <h3 className="text-sm font-semibold text-[var(--admin-fg)] mb-1">Módulos del panel</h3>
+          <p className="text-xs text-[var(--admin-fg-muted)] mb-4">
+            Accede rápido a cualquier sección del CMS.
           </p>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[
-              "Categorías del catálogo",
-              "Banners promocionales",
-              "Pedidos y estados de envío",
-              "Clientes registrados",
-              "Cupones y promociones",
-              "Configuración general",
-            ].map((item) => (
-              <li
-                key={item}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/[0.03] border border-[var(--admin-border)] text-xs text-[var(--admin-fg-muted)]"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {MODULOS.map(({ label, href, icon: Icon, desc }) => (
+              <Link
+                key={href}
+                href={href}
+                className="admin-card-premium admin-card-interactive group flex items-center gap-3 p-4"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--admin-fg-subtle)]" />
-                {item}
-              </li>
+                <span className="w-10 h-10 shrink-0 rounded-xl bg-[var(--primary)]/12 text-[var(--primary)] flex items-center justify-center group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
+                  <Icon size={18} />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[var(--admin-fg)]">{label}</p>
+                  <p className="text-[11px] text-[var(--admin-fg-subtle)] truncate">{desc}</p>
+                </div>
+                <ArrowRight
+                  size={15}
+                  className="text-[var(--admin-fg-subtle)] group-hover:text-[var(--primary)] group-hover:translate-x-0.5 transition-all"
+                />
+              </Link>
             ))}
-          </ul>
+          </div>
         </div>
 
       </div>

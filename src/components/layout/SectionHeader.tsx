@@ -37,7 +37,8 @@ export function SectionHeader({
       {tag && (
         <span
           className={cn(
-            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-extrabold tracking-[0.15em] uppercase",
+            "inline-flex w-fit items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-extrabold tracking-[0.15em] uppercase",
+            isCenter && "self-center",
             tag.className ??
               "bg-[var(--primary-soft)] text-[var(--primary)]"
           )}

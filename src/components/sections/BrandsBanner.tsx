@@ -4,6 +4,7 @@ import { BrandCard } from "@/components/product/BrandCard";
 import { MobileScroller } from "@/components/layout/MobileScroller";
 import { listBrands, type ShopBrand } from "@/lib/shop-api";
 import type { Brand } from "@/types";
+import type { HomeMarca } from "./home-types";
 
 const PILL_COLORS = ["#1E1E1E", "#C8102E", "#1E1E1E", "#0066CC", "#000000"];
 
@@ -25,16 +26,40 @@ function toBrand(b: ShopBrand, idx: number): Brand {
   };
 }
 
-export async function BrandsBanner() {
+function marcaToBrand(m: HomeMarca, idx: number): Brand {
+  return {
+    id: m.id,
+    name: m.nombre,
+    image: HERO_IMAGES[idx] ?? m.logo ?? undefined,
+    modelCount: m.productos_count,
+    pillColor: PILL_COLORS[idx % PILL_COLORS.length],
+  };
+}
+
+// Tope de seguridad para el grid (evita layouts rotos con catálogos enormes).
+const MAX_BRANDS = 12;
+
+export async function BrandsBanner(
+  props: { titulo?: string; subtitulo?: string; marcas?: HomeMarca[] } = {},
+) {
+  const titulo = props?.titulo;
+  const subtitulo = props?.subtitulo;
+  const marcasPreset = props?.marcas;
+
   let brands: Brand[] = [];
-  try {
-    const res = await listBrands();
-    brands = res.data
-      .sort((a, b) => b.productos_count - a.productos_count)
-      .slice(0, 3)
-      .map(toBrand);
-  } catch (err) {
-    console.error("BrandsBanner fetch failed", err);
+  if (marcasPreset && marcasPreset.length > 0) {
+    // Respeta la selección del admin (sin recorte fijo a 3).
+    brands = marcasPreset.slice(0, MAX_BRANDS).map(marcaToBrand);
+  } else {
+    try {
+      const res = await listBrands();
+      brands = res.data
+        .sort((a, b) => b.productos_count - a.productos_count)
+        .slice(0, MAX_BRANDS)
+        .map(toBrand);
+    } catch (err) {
+      console.error("BrandsBanner fetch failed", err);
+    }
   }
 
   return (
@@ -50,10 +75,10 @@ export async function BrandsBanner() {
             <div className="flex flex-col gap-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E63946] text-white text-[11px] font-extrabold tracking-[0.2em] uppercase w-fit">
                 <Sparkles size={12} />
-                Marcas
+                {subtitulo?.trim() || "Marcas"}
               </span>
               <h2 className="text-4xl md:text-5xl lg:text-[52px] font-black text-white leading-[1.05] tracking-tight">
-                Las mejores del mercado
+                {titulo ?? "Las mejores del mercado"}
               </h2>
               <p className="text-sm md:text-base text-white/70">
                 Trabajamos con las marcas más respetadas del sneaker game.
@@ -73,7 +98,16 @@ export async function BrandsBanner() {
               Aún no hay marcas. Sincroniza el catálogo desde el panel admin.
             </div>
           ) : (
-            <MobileScroller desktopGrid="lg:grid-cols-3" itemWidth="card">
+            <MobileScroller
+              desktopGrid={
+                brands.length <= 3
+                  ? "lg:grid-cols-3"
+                  : brands.length === 4
+                    ? "lg:grid-cols-4"
+                    : "lg:grid-cols-3 xl:grid-cols-4"
+              }
+              itemWidth="card"
+            >
               {brands.map((brand) => (
                 <BrandCard key={brand.id} brand={brand} />
               ))}

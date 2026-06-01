@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   Layers,
@@ -44,6 +45,7 @@ const SECTIONS: NavSection[] = [
   {
     title: "CONTENIDO",
     items: [
+      { label: "Homepage", href: "/admin/home", icon: LayoutDashboard },
       { label: "Productos", href: "/admin/productos", icon: ShoppingBag },
       { label: "Categorías", href: "/admin/categorias", icon: Tag},
       { label: "Banners", href: "/admin/banners", icon: Layers},
@@ -144,18 +146,25 @@ export function Sidebar() {
                     <Link
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+                        "relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200",
                         isActive
-                          ? "bg-[var(--primary)] text-white shadow-sm"
+                          ? "text-white"
                           : "text-[var(--admin-fg-muted)] hover:bg-white/5 hover:text-[var(--admin-fg)]",
                       )}
                     >
-                      <Icon size={16} className="shrink-0" />
-                      <span className="flex-1">{item.label}</span>
+                      {isActive && (
+                        <motion.span
+                          layoutId="sidebar-active-pill"
+                          className="absolute inset-0 rounded-lg bg-[var(--primary)] shadow-sm shadow-[var(--primary)]/30"
+                          transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                        />
+                      )}
+                      <Icon size={16} className="shrink-0 relative z-10" />
+                      <span className="flex-1 relative z-10">{item.label}</span>
                       {item.soon && (
                         <span
                           className={cn(
-                            "text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded",
+                            "relative z-10 text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded",
                             isActive
                               ? "bg-white/20 text-white"
                               : "bg-white/5 text-[var(--admin-fg-subtle)]",

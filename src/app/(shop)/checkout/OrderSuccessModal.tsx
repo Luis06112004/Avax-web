@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { ArrowRight, Check, FileText } from "lucide-react";
+import { ArrowRight, Check, FileText, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils";
 
@@ -11,6 +11,8 @@ type Props = {
   orderNumber: string;
   total: number;
   email: string;
+  /** True si la compra fue como invitado (sin sesión). */
+  isGuest?: boolean;
   onClose?: () => void;
 };
 
@@ -19,6 +21,7 @@ export function OrderSuccessModal({
   orderNumber,
   total,
   email,
+  isGuest = false,
   onClose,
 }: Props) {
   useEffect(() => {
@@ -54,6 +57,7 @@ export function OrderSuccessModal({
           <p className="text-sm text-[var(--foreground-muted)] mt-2 max-w-xs mx-auto">
             Gracias por tu compra. Hemos enviado la confirmación a{" "}
             <span className="font-bold text-[var(--avax-black)]">{email}</span>.
+            Guarda tu número de orden para hacer seguimiento.
           </p>
         </div>
 
@@ -76,6 +80,33 @@ export function OrderSuccessModal({
             </span>
           </div>
         </div>
+
+        {/* Invitado: ofrecer crear cuenta (opcional) con el email del pedido */}
+        {isGuest && (
+          <div className="mx-6 mt-5 rounded-2xl border border-[var(--primary)]/25 bg-[var(--primary-soft)] px-4 py-3.5">
+            <div className="flex items-start gap-3">
+              <span className="shrink-0 w-9 h-9 rounded-xl bg-[var(--primary)] text-white flex items-center justify-center">
+                <UserPlus size={18} />
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-[var(--avax-black)]">
+                  ¿Quieres crear una cuenta?
+                </p>
+                <p className="text-xs text-[var(--foreground-muted)] mt-0.5">
+                  Guarda tus datos y revisa tus pedidos cuando quieras. Es opcional.
+                </p>
+                <Link
+                  href={`/registro?email=${encodeURIComponent(email)}`}
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1.5 mt-2 text-sm font-bold text-[var(--primary)] hover:underline"
+                >
+                  Crear cuenta con {email}
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Acciones */}
         <div className="px-6 py-5 flex flex-col gap-3">

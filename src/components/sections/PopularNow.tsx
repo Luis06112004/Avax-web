@@ -1,7 +1,7 @@
 import { Flame } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { SectionHeader } from "@/components/layout/SectionHeader";
-import { MobileScroller } from "@/components/layout/MobileScroller";
+import { ProductCarousel } from "@/components/layout/ProductCarousel";
 import { listPopular, type ShopProduct } from "@/lib/shop-api";
 import type { Product } from "@/types";
 
@@ -21,20 +21,30 @@ function toProduct(p: ShopProduct): Product {
   };
 }
 
-export async function PopularNow() {
+export async function PopularNow(
+  props: { titulo?: string; subtitulo?: string; productos?: ShopProduct[] } = {},
+) {
+  const titulo = props?.titulo;
+  const subtitulo = props?.subtitulo;
+  const productosPreset = props?.productos;
+
   let products: Product[] = [];
-  try {
-    const res = await listPopular();
-    products = res.data.map(toProduct);
-  } catch (err) {
-    console.error("PopularNow fetch failed", err);
+  if (productosPreset && productosPreset.length > 0) {
+    products = productosPreset.map(toProduct);
+  } else {
+    try {
+      const res = await listPopular();
+      products = res.data.map(toProduct);
+    } catch (err) {
+      console.error("PopularNow fetch failed", err);
+    }
   }
 
   return (
     <section className="container-page py-14">
       <SectionHeader
-        tag={{ label: "Trending ahora", icon: <Flame size={14} /> }}
-        title="Lo más popular esta semana"
+        tag={{ label: subtitulo ?? "Trending ahora", icon: <Flame size={14} /> }}
+        title={titulo ?? "Lo más popular esta semana"}
         className="mb-9"
       />
 
@@ -43,11 +53,11 @@ export async function PopularNow() {
           Aún no hay productos disponibles. Sincroniza el catálogo desde el panel admin.
         </div>
       ) : (
-        <MobileScroller desktopGrid="lg:grid-cols-3" itemWidth="card">
+        <ProductCarousel>
           {products.map((product) => (
             <ProductCard key={product.id} product={product} size="md" />
           ))}
-        </MobileScroller>
+        </ProductCarousel>
       )}
     </section>
   );
