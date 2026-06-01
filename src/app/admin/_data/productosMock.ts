@@ -12,8 +12,10 @@
  * con los imports actuales del CMS — internamente ya no es mock.
  */
 
+import { getAdminToken } from "@/lib/admin-auth";
+
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8010/api";
 
 export type ProductStatus = "active" | "draft" | "out_of_stock";
 export type ProductBadge = "HOT" | "NEW" | "SALE" | null;
@@ -76,10 +78,15 @@ export const STATUS_LABEL: Record<ProductStatus, string> = {
   out_of_stock: "Sin stock",
 };
 
-const headers: HeadersInit = {
-  "Content-Type": "application/json",
-  Accept: "application/json",
-};
+/** Headers con el token admin (Bearer) — el grupo /admin requiere auth. */
+function authHeaders(): HeadersInit {
+  const token = getAdminToken();
+  return {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
 
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -96,7 +103,7 @@ async function handle<T>(res: Response): Promise<T> {
 
 export async function fetchProducts(): Promise<AdminProduct[]> {
   const res = await fetch(`${API_BASE}/admin/productos`, {
-    headers,
+    headers: authHeaders(),
     cache: "no-store",
   });
   return handle<AdminProduct[]>(res);
@@ -104,7 +111,7 @@ export async function fetchProducts(): Promise<AdminProduct[]> {
 
 export async function getProduct(id: string): Promise<AdminProduct | null> {
   const res = await fetch(`${API_BASE}/admin/productos/${id}`, {
-    headers,
+    headers: authHeaders(),
     cache: "no-store",
   });
   if (res.status === 404) return null;
@@ -114,7 +121,7 @@ export async function getProduct(id: string): Promise<AdminProduct | null> {
 export async function createProduct(data: ProductInput): Promise<AdminProduct> {
   const res = await fetch(`${API_BASE}/admin/productos`, {
     method: "POST",
-    headers,
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   return handle<AdminProduct>(res);
@@ -126,7 +133,7 @@ export async function updateProduct(
 ): Promise<AdminProduct> {
   const res = await fetch(`${API_BASE}/admin/productos/${id}`, {
     method: "PUT",
-    headers,
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   return handle<AdminProduct>(res);
@@ -135,7 +142,7 @@ export async function updateProduct(
 export async function deleteProduct(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/admin/productos/${id}`, {
     method: "DELETE",
-    headers,
+    headers: authHeaders(),
   });
   await handle<void>(res);
 }

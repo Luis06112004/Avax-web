@@ -10,8 +10,10 @@
  *   GET  /api/admin/sync/last           ultimo job realizado
  */
 
+import { getAdminToken } from "@/lib/admin-auth";
+
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8010/api";
 
 export type SyncEstado = "en_progreso" | "completado" | "error" | "cancelado";
 
@@ -60,10 +62,15 @@ export type ApiEnvelope<T> = {
   message?: string;
 };
 
-const headers: HeadersInit = {
-  "Content-Type": "application/json",
-  Accept: "application/json",
-};
+/** Headers con el token admin (Bearer) — el grupo /admin requiere auth. */
+function authHeaders(): HeadersInit {
+  const token = getAdminToken();
+  return {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
 
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -78,7 +85,7 @@ async function handle<T>(res: Response): Promise<T> {
 export async function runSync(): Promise<ApiEnvelope<SyncJob>> {
   const res = await fetch(`${API_BASE}/admin/sync/run`, {
     method: "POST",
-    headers,
+    headers: authHeaders(),
   });
   return handle<ApiEnvelope<SyncJob>>(res);
 }
@@ -86,7 +93,7 @@ export async function runSync(): Promise<ApiEnvelope<SyncJob>> {
 /** Devuelve el último job realizado (puede ser null). */
 export async function getLastSync(): Promise<ApiEnvelope<SyncJob | null>> {
   const res = await fetch(`${API_BASE}/admin/sync/last`, {
-    headers,
+    headers: authHeaders(),
     cache: "no-store",
   });
   return handle<ApiEnvelope<SyncJob | null>>(res);
@@ -114,7 +121,7 @@ export async function getSyncCambios(
   if (opts.page) params.set("page", String(opts.page));
 
   const url = `${API_BASE}/admin/sync/${jobId}/cambios${params.toString() ? `?${params}` : ""}`;
-  const res = await fetch(url, { headers, cache: "no-store" });
+  const res = await fetch(url, { headers: authHeaders(), cache: "no-store" });
   return handle<
     ApiEnvelope<{
       job: SyncJob;
