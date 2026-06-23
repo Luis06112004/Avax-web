@@ -5,9 +5,9 @@
 
 import { getAdminToken } from "./admin-auth";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8010/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 const STORAGE_URL =
-  process.env.NEXT_PUBLIC_STORAGE_URL ?? "http://127.0.0.1:8010/storage";
+  process.env.NEXT_PUBLIC_STORAGE_URL ?? "http://127.0.0.1:8000/storage";
 
 export type DeviceKey = "desktop" | "tablet" | "mobile";
 

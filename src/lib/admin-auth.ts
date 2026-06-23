@@ -3,7 +3,7 @@
  * tienda — el panel solo es accesible para usuarios con role='admin'.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8010/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 
 const ADMIN_TOKEN_KEY = "avax_admin_token_v1";
 const ADMIN_USER_KEY = "avax_admin_user_v1";

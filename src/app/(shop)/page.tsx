@@ -1,7 +1,7 @@
 import { HomeSections } from "@/components/sections/HomeSections";
 import type { SeccionResuelta } from "@/components/sections/home-types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8010/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 
 async function getSecciones(): Promise<SeccionResuelta[]> {
   try {
